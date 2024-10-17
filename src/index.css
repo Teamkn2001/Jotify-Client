@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.no-border .ql-container {
+   border: none;
+}
+/* remove textarea default from quill */
