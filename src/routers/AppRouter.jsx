@@ -18,8 +18,7 @@ const guessRouter = createBrowserRouter([
 const userRouter = createBrowserRouter([
     { path: '/', element: <DocManage />},
     { path: 'profile', element: <Profile />},
-    { path: 'document', element: <EditorPage />}
-
+    { path: 'document/:docId', element: <EditorPage />}
 
 ])
 

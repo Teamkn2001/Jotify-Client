@@ -11,7 +11,7 @@ export default function DocManage() {
             <div className="flex ">
                 <SidebarMenu />
                 <DocManageContent />
-            </div>
+            </div>  
          
         </>
     )

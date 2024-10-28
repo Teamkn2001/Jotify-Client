@@ -104,8 +104,10 @@ export default function Permission({ documentId }) {
                 </div>
 
                 <div>
-                    {userPermissions.map(el => (
-                        <div className='flex gap-5'>
+                    {userPermissions.map((el, index) => (
+                        <div 
+                        key={index}
+                        className='flex gap-5'>
                             <p>{el.permission} </p>
                             <p>{el.user.username} </p>
                             <p>({el.user.email}) </p>

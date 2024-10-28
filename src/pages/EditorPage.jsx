@@ -1,325 +1,259 @@
 import React, { useEffect, useState } from 'react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
-import { AvatarIcon01 } from '../icons';
-import { Link } from 'react-router-dom';
-import useUserStore from '../stores/userStore';
+import { useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import Avatar from '../components/Avatar';
-import RollBack from '../components/RollBack';
-import Permission from '../components/Permission';
+import { useQuill } from 'react-quilljs';
+import Quill from 'quill';
+import 'quill/dist/quill.snow.css';
+import useUserStore from '../stores/userStore';
+import HeaderMenu from '../components/HeaderMenu';
+import ImageResize from 'quill-image-resize-module-react';
+import io from 'socket.io-client';
+import QuillToolbarMenu from '../components/QuillToolbarMenu';
 
-const EditorPage = () => {
+Quill.register('modules/imageResize', ImageResize);
 
-  const [newSetTitle, setNewSetTitle] = useState(false)
-
-  // get content in the doc first 
-  const getAllDocument = useUserStore(pull => pull.documents)
-
-  // get the it when clicked from main doc
-  const documentId = useUserStore(pull => pull.currentDocumentId)
-  const updateDoc = useUserStore(pull => pull.updateDoc) // for display
-  const updateTitle = useUserStore(pull => pull.updateTitle) 
-  const clearCurrentDoc = useUserStore(pull => pull.clearCurrentDoc)
-  const getAllDoc = useUserStore(pull => pull.getAllDoc)
-  const addOwnerPermission = useUserStore(pull => pull.addOwnerPermission)
-  const saveBackupVersion = useUserStore(pull => pull.saveBackupVersion)
-  const getVersionDoc = useUserStore(pull => pull.getVersionDoc)
-
-  // get all doc then find the id that get clicked
-  const findContentByDocumentId = getAllDocument.find(doc => doc.id === documentId)
-  // console.log(findContentByDocumentId)
-
-  const user = useUserStore(pull => pull.user)
-  const token = useUserStore(pull => pull.token)
-  console.log(user)
-
-  const [content, setContent] = useState('');
-  console.log("content =", content)
-
-  const [title, setTitle] = useState({
-    title: findContentByDocumentId ? findContentByDocumentId.title : ""
-  })
-  console.log("title = ", title)
-
-  // change title 
-  const hdlTitleChange = e => {
-    const newValue = e.target.value; // Capture the new input value
-    setTitle(prev => ({ ...prev, [e.target.name]: newValue }))
-
-  }
-  // it's work but infinity loop !!!!!!!!!!!!!!!!!!
-  useEffect(() => {
-    let intervalAxios = setTimeout(() => {
-      if (title?.title?.trim()) {
-        updateTitle(documentId, title, token)
-      }
-    }, 2000)
-    //  setNewSetTitle(true)
-
-    return () => clearTimeout(intervalAxios)
-
-  }, [title?.title])
-
-
-  // prepare body for set owner permission
-  // const body = {
-  //   userId : user.id,
-  //   documentId : documentId
-  // }
-  // if when you clicked the mapped doc it will set the docId and sent here
-  useEffect(() => {
-    // addOwnerPermission(body , token)
-    const testAs = async () => {
-
-      // for clicked open doc
-      if (findContentByDocumentId) {
-        setContent(findContentByDocumentId.content)
-        setTitle(findContentByDocumentId.title)
-      } else {
-        // for clicked create new
-        const test = await getAllDoc(user.id, token)
-        console.log('findContentByDocumentId', findContentByDocumentId, test)
-        // setNewSetTitle(true)
-        // setTitle(findContentByDocumentId?.title)
-      }
+// ------------------------jsx ------------------------------
+const EDITOR_CONFIGS = {
+  modules: {
+    toolbar: '#toolbar',
+    imageResize: {
+      parchment: Quill.import('parchment'),
+      modules: ['Resize', 'DisplaySize'],
+      displaySize: true
     }
-    testAs()
-  }, [])
-
-  // console.log("newSetTitle", newSetTitle)
-  // if (newSetTitle) {
-  // }
-
-  const hdlSave = async e => {
-    const body = {
-      content: content
-    }
-    await updateDoc(documentId, body, token)
-    await saveBackupVersion(documentId, body, token)
-    await getVersionDoc(documentId, token)
-  }
-
-  // separate toolbar from textarea
-  const modules = {
-    toolbar: {
-      container: "#customToolbar" // link to id
-    }
-  }
-
-  // format need to use
-  const formats = [
-    "header", "bold", "italic", "underline", "strike",
-    "list", "bullet", "align", "link", "image", "color", "background"
+  },
+  formats: [
+    'header',
+    'bold', 'italic', 'underline', 'strike',
+    'list',
+    'align',
+    'link', 'image'
   ]
+};
+
+const PAGE_HEIGHT = 750;
+const MAX_CONTENT_LENGTH = 10000; // Maximum characters per page fix later!!!!!!!!
+
+// Create a separate component for each Quill editor page
+const QuillPage = ({ onContentChange, initialContent = '', onPageFull, pageIndex, focusOnMount }) => {
+  const { quill, quillRef } = useQuill({
+    ...EDITOR_CONFIGS,
+    theme: 'snow',
+    preserveWhitespace: true,
+  });
+
+  useEffect(() => {
+    if (!quill) return;
+
+    // Set initial content if provided
+    if (initialContent) {
+      quill.root.innerHTML = initialContent;
+    }
+
+    // Focus on this editor if it's new
+    if (focusOnMount) {
+      setTimeout(() => {
+        quill.focus();
+        quill.setSelection(0, 0);
+      }, 100);
+    }
+
+    // Set up image handling
+    quill.getModule('toolbar').addHandler('image', () => {
+      const input = document.createElement('input');
+      input.setAttribute('type', 'file');
+      input.setAttribute('accept', 'image/*');
+      input.click();
+
+      input.onchange = async () => {
+        const file = input.files[0];
+        if (file) {
+          const reader = new FileReader();
+          console.log('reader =', reader)
+          reader.onload = (e) => {
+            const range = quill.getSelection(true);
+            console.log('range of cursor', range)
+            // Use insertEmbed instead of updateContents for images
+            quill.insertEmbed(range.index, 'image', e.target.result);
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+    });
+
+    // Monitor content changes
+    quill.on('text-change', () => {
+      const editor = quillRef.current;
+      console.log('editor by quillRef.current =', editor)
+      const contentHeight = editor?.clientHeight;
+      console.log('contentHeight by editor client=', contentHeight)
+      const contentLength = quill.getText().length; // for limit characters length
+
+      const content = quill.root.innerHTML;
+      console.log('content.root.innerHTML =', content)
+
+      // Check if content exceeds limits
+      if (contentHeight > PAGE_HEIGHT || contentLength > MAX_CONTENT_LENGTH) {
+        // Get cursor position
+        const selection = quill.getSelection();
+        if (!selection) return;
+
+        // If we're at the end of the content
+        if (selection.index === quill.getLength() - 1) {
+          onPageFull(pageIndex);
+          return;
+        }
+
+        // If we're in the middle of the content, split it
+        const contents = quill.getContents(0, selection.index);
+        const remainingContents = quill.getContents(selection.index);
+        
+        // Update current page with content up to cursor
+        quill.setContents(contents);
+        
+        // Signal parent to create new page with remaining content
+        onPageFull(pageIndex, quill.root.innerHTML, remainingContents);
+      }
+
+      onContentChange(contentHeight, content);
+    });
+
+    // Prevent pasting if it would exceed the limit
+    quill.clipboard.addMatcher(Node.ELEMENT_NODE, (node, delta) => {
+      const currentLength = quill.getText().length;
+      const incomingLength = delta.length();
+      
+      if (currentLength + incomingLength > MAX_CONTENT_LENGTH) {
+        toast.warning('Content exceeds page limit. Please continue on next page.');
+        return new Delta(); // Return empty delta to prevent paste
+      }
+      return delta;
+    });
+
+  }, [quill]);
 
   return (
-    <div className='flex flex-col  bg-sky-200'>
-
-      <div className="flex justify-between items-center px-9 h-20 ">
-
-        <div className='flex gap-10 items-center'>
-          <div >
-            Logo
-          </div>
-          <div>
-            <div>
-              <input
-                name='title'
-                value={title?.title}
-                onChange={hdlTitleChange}
-                // placeholder={() => title} 
-                className='bg-none border-none' />
-            </div>
-            <div className='flex gap-3'>
-              <div className="dropdown">
-                <div tabIndex={0} className="">file</div>
-                <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                  <li><a>Item 1</a></li>
-                  <li><a>Item 2</a></li>
-                </ul>
-              </div>
-              <div
-                onClick={() => hdlSave()}
-                className="bg-green-300 cursor-pointer"
-              >save</div>
-              <p>feature1</p>
-              <p>feature2</p>
-              <p>feature3</p>
-              <p>feature4</p>
-              <p>feature5</p>
-            </div>
-          </div>
-        </div>
-
-        <div className='flex gap-4 items-center'>
-          <Link to={'/'}
-            onClick={() => clearCurrentDoc()}
-          >
-            I'm out Icon
-          </Link>
-
-          <div onClick={() => document.getElementById('permission-setting').showModal()}>
-            <p className='text-red-500'>Permission</p>
-          </div>
-
-          <dialog id='permission-setting' className='modal'>
-           <Permission documentId={documentId}/>
-          </dialog>
-
-          <div onClick={() => document.getElementById('rollback-setting').showModal()}>
-            rollback
-          </div>
-          <dialog id='rollback-setting' className='modal'>
-            <RollBack token={token} documentId={documentId} documentDetail={findContentByDocumentId} setContent={setContent} />
-          </dialog>
-
-          <div
-            onClick={() => document.getElementById('profile-Info').showModal()}>
-            < Avatar imgSrc={user.profileImage} className='flex justify-center origin-center  w-16 rounded-full overflow-hidden' />
-            {/* <AvatarIcon01 className='w-16 ' /> */}
-          </div>
-
-          <dialog id='profile-Info' className='modal'>
-            <div className="modal-box flex flex-col justify-center items-center">
-              <p className='text-2xl font-bold'>User Info</p>
-              <Avatar imgSrc={user.profileImage} className='w-[125px]' />
-              <p> <span className='font-bold'>Name :</span> {user.username}</p>
-              <button
-                type="button"
-                onClick={e => e.target.closest('dialog').close()}
-                className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
-                ✕
-              </button>
-            </div>
-          </dialog>
-        </div>
-      </div>
-
-      {/* // create toolbar  */}
-      <div className="mb-4 " id='customToolbar'>
-        <select className='ql-header'>
-          {/* add header that can select */}
-          <option value="1"></option>
-          <option value="2"></option>
-        </select>
-        <button className='ql-bold'></button>
-        <button className="ql-italic"></button>
-        <button className="ql-underline"></button>
-        <button className="ql-strike"></button>
-        <button className="ql-list" value="ordered"></button>
-        <button className="ql-list" value="bullet"></button>
-        <button className="ql-align" value=""></button>
-        <button className="ql-align" value="center"></button>
-        <button className="ql-align" value="right"></button>
-        <button className="ql-link"></button>
-        <button className="ql-image"></button>
-      </div>
-
-
-      {/* // this is text area  */}
-      <div className='relative'>
-
-        <div className="bg-white shadow-md w-[794px] h-[1123px] m-auto p-16 ">
-          <ReactQuill
-            value={content}
-            onChange={setContent}
-            modules={modules}
-            formats={formats}
-            className='no-border'
-          />
-
-          <div
-            onClick={() => document.getElementById('comment-section').showModal()}
-            className='bg-green-600 w-12 h-44 absolute right-0 flex items-center justify-center rounded-md'>
-            <p className='-rotate-90 text-lg font-semibold'>comment</p>
-          </div>
-
-          <dialog id='comment-section' className='modal'>
-            <div className="modal-box w-4/5 h-4/5 bg-sky-300 flex flex-col gap-6 relative">
-              <button
-                type="button"
-                onClick={e => e.target.closest('dialog').close()}
-                className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
-                ✕
-              </button>
-              <div>
-                <h1>Comments</h1>
-              </div>
-              {/* mapped */}
-              <div className='flex flex-col gap-3'>
-                <div className='flex gap-4'>
-                  <div>
-                    <Avatar imgSrc={user.profileImage} className='w-11' />
-                  </div>
-                  <div>
-                    <div>
-                      mapped username
-                    </div>
-                    <div>
-                      mapped i will show comment here
-                    </div>
-                  </div>
-                </div>
-                <div className='flex gap-4'>
-                  <div>
-                    <Avatar imgSrc={user.profileImage} className='w-11' />
-                  </div>
-                  <div>
-                    <div>
-                      mapped username
-                    </div>
-                    <div>
-                      mapped i will show comment here
-                    </div>
-                  </div>
-                </div>
-                <div className='flex gap-4'>
-                  <div>
-                    <Avatar imgSrc={user.profileImage} className='w-11' />
-                  </div>
-                  <div>
-                    <div>
-                      mapped username
-                    </div>
-                    <div>
-                      mapped i will show comment here
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className='w-5/6 min-h-12 bg-sky-100 absolute bottom-6 p-4 flex items-center gap-5'>
-                <div className='flex gap-4'>
-                  <div>
-                    <Avatar imgSrc={user.profileImage} className='w-11' />
-                  </div>
-                  <div>
-                    <div>
-                      from userStore username
-                    </div>
-                    <div>
-                      <input
-                        type="text"
-                        placeholder="write something here ...."
-                        className="input input-bordered w-full max-w-xs"
-                      />
-                    </div>
-
-                  </div>
-                </div>
-                <div>
-                  send icon
-                </div>
-              </div>
-            </div>
-          </dialog>
-
-        </div>
-      </div>
-
+    <div className='no-border bg-white shadow-md w-[794px] min-h-[750px] m-auto p-16 mb-9 overflow-hidden'>
+      <div ref={quillRef} className='quill-page' />
     </div>
-  )
-}
+  );
+};
+// ------------------------jsx ------------------------------
+const EditorPage = () => {
+  const { docId } = useParams();
+  const documentId = useUserStore(pull => pull.currentDocumentId);
+  const updateDoc = useUserStore(pull => pull.updateDoc);
+  const updateTitle = useUserStore(pull => pull.updateTitle);
+  const clearCurrentDoc = useUserStore(pull => pull.clearCurrentDoc);
+  const user = useUserStore(pull => pull.user);
+  const token = useUserStore(pull => pull.token);
 
-export default EditorPage
+  const [pages, setPages] = useState(['']);
+  const [title, setTitle] = useState({ title: '' });
+  const [socket, setSocket] = useState(null);
+  const [focusNewPage, setFocusNewPage] = useState(false);
+
+  const handleContentChange = (index, contentHeight, content) => {
+    setPages(prev => {
+      console.log("hdlContentChange index =",index, "contentHeight =", contentHeight, "content =", content)
+      const updatedPages = [...prev];
+      updatedPages[index] = content;
+      return updatedPages;
+    });
+  };
+
+  const  handlePageFull = (pageIndex, currentContent, remainingContent) => {
+    console.log("handle Page full executed!!")
+    setPages(prev => {
+      const updatedPages = [...prev];
+      console.log('hdl Page full updatedPages ===', updatedPages)
+      
+      // If we have content to split
+      if (remainingContent) {
+        // Update current page
+        if (currentContent) {
+          updatedPages[pageIndex] = currentContent;
+        }
+        
+        // Insert new page with remaining content
+        updatedPages.splice(pageIndex + 1, 0, '');
+      } else {
+        // Just add a new empty page
+        updatedPages.push('');
+      }
+      
+      return updatedPages;
+    });
+    
+    setFocusNewPage(true);
+  };
+
+  const hdlTitleChange = e => {
+    const newValue = e.target.value;
+    setTitle(prev => ({ ...prev, [e.target.name]: newValue }));
+  };
+
+  useEffect(() => {
+    let intervalAxios = setTimeout(() => {
+      if (title.title.trim()) {
+        updateTitle(documentId, title, token);
+      }
+    }, 2000);
+
+    return () => clearTimeout(intervalAxios);
+  }, [title.title]);
+
+  useEffect(() => {
+    const enterSocket = io('http://localhost:8200');
+    setSocket(enterSocket);
+
+    enterSocket.on('connect', () => {
+      toast.success("user connect with id =" + enterSocket.id);
+      return () => enterSocket.disconnect();
+    });
+  }, []);
+
+  useEffect(() => {
+    if (socket == null) return;
+    socket.emit("get-docId", docId);
+  }, [socket, docId]);
+// not use now
+  const hdlSave = async () => {
+    toast.success("saved");
+  };
+
+  return (
+    <div className='flex flex-col bg-sky-200'>
+      <div className='flex flex-col sticky top-0 z-10 bg-green-300'>
+        <HeaderMenu
+          title={title}
+          hdlTitleChange={hdlTitleChange}
+          hdlSave={hdlSave}
+          clearCurrentDoc={clearCurrentDoc}
+          user={user}
+        />
+        <QuillToolbarMenu />
+      </div>
+
+      <div className='relative'>
+        {socket ?
+          <h1 className='bg-red-600 mb-3'>user :{socket.id}</h1> :
+          <h1>no socket user</h1>
+        }
+        
+        {pages.map((content, index) => (
+          <QuillPage
+            key={index}
+            pageIndex={index}
+            initialContent={content}
+            onContentChange={(height, content) => handleContentChange(index, height, content)}
+            onPageFull={handlePageFull}
+            focusOnMount={focusNewPage && index === pages.length - 1}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default EditorPage;

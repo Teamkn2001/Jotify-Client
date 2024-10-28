@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AvatarIcon01 } from '../icons'
 import useUserStore from '../stores/userStore'
+import { v4 as uuidV4 } from 'uuid'
 
 export default function SidebarMenu() {
     const navigate = useNavigate()
@@ -19,8 +20,8 @@ export default function SidebarMenu() {
    
     const hdlCreateDoc = async (e) => {
         // console.log(user.id, token)
-        await createDoc(user.id, token)
-
+        const rs = await createDoc(user.id, token)
+      
         await getAllDoc(user.id, token)
 
         setIsReady(true)
@@ -39,7 +40,7 @@ export default function SidebarMenu() {
     
             addOwnerPermission(body, token)
 
-            navigate('/document')
+            navigate(`/document/${documentId}${uuidV4()}`)
         }
     }, [isReady])
     

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import useUserStore from '../stores/userStore'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
+import { v4 as uuidV4} from 'uuid'
 
 export default function DocManageContent() {
     const user = useUserStore(pull => pull.user)
@@ -10,7 +11,7 @@ export default function DocManageContent() {
     const navigate = useNavigate()
 
     const allDocuments = useUserStore(pull => pull.documents)
-    // console.log(allDocuments)
+    console.log(allDocuments)
     const getAllDoc = useUserStore(pull => pull.getAllDoc)
     const getFilteredDoc = useUserStore(pull => pull.getFilteredDoc)
     const setCurrentDoc = useUserStore(pull => pull.setCurrentDoc)
@@ -34,7 +35,7 @@ export default function DocManageContent() {
         e.stopPropagation()
         // console.log(docId)
         await setCurrentDoc(docId)
-        navigate('/document')
+        navigate(`/document/${docId}${uuidV4()}`)
     }
 
     const hdlDeleteDoc = async (e, documentId) => {

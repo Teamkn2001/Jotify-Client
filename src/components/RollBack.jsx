@@ -19,12 +19,15 @@ export default function RollBack({ token, documentId, documentDetail, setContent
     const  hdlRollback = async () => {
         console.log("prepare rollback data =",versionDetail.content)
        
-            const content = versionDetail.content
+            const content = versionDetail.content.length === 0 
+            ? ['']
+            : versionDetail.content.split(",")
             
-            await setContent(versionDetail.content)
+            await setContent(content)
     //         // await saveBackupVersion(documentId, body, token)
     //         // await getVersionDoc(documentId, token)
     //       }
+   
     }
 
     useEffect(() => {
@@ -42,8 +45,8 @@ export default function RollBack({ token, documentId, documentDetail, setContent
                 </button>
 
                 <h1 className='font-bold text-2xl'>Document Saved Version</h1>
-                {savedVersions.map(el => (
-                    <div>
+                {savedVersions.map((el, index) => (
+                    <div key={index}>
                         <div
                             className='flex gap-3'
                             onClick={() => {
@@ -52,7 +55,7 @@ export default function RollBack({ token, documentId, documentDetail, setContent
                             }
 
                             }>
-                            <span>{documentDetail.title}</span>
+                            <span>{el.title}</span>
                             <p>{el.versionNumber}</p>
                         </div>
                     </div>

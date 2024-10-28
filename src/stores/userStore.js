@@ -6,7 +6,7 @@ import ResetPassword from "../components/ResetPassword";
 const useUserStore = create(
   persist(
     (set) => ({
-      documents: [],
+      documents: [],   
       user: null,
       token: "",
       currentDocumentId: "",
@@ -87,6 +87,7 @@ const useUserStore = create(
         );
         set(()=>({ currentDocumentId: rs.data.pageData.id }));
         console.log("1",rs.data)
+        // return rs.data
       },
       updateDoc: async (documentId, body, token) => {
         console.log("upd Doc sto", documentId, body, token);
