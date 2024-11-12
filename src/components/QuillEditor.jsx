@@ -1,6 +1,7 @@
 import React from 'react'
 import { useQuill } from 'react-quilljs';
 
+
 export default function QuillEditor({ onContentChange, initialContent = '', onPageFull, pageIndex, focusOnMount }) {
     const { quill, quillRef } = useQuill({
         ...EDITOR_CONFIGS,

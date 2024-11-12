@@ -8,8 +8,8 @@ export default function HeaderMenu({title, hdlTitleChange, hdlSave, clearCurrent
    <>
     <div className="flex justify-between items-center px-9 h-20 ">
         <div className='flex gap-10 items-center'>
-          <div >
-            Logo
+          <div className='w-12'>
+           <img src="https://res.cloudinary.com/djudr1vzc/image/upload/v1731374480/sunflower-1621990_1920_fiumqr.jpg" alt="" />
           </div>
           <div>
             <div>

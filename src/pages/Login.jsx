@@ -2,9 +2,11 @@ import React, { useState } from 'react'
 import Register from './Register'
 import useUserStore from '../stores/userStore'
 import { toast } from 'react-toastify'
+import roof from '../../src/assets/roof.svg'
+
 
 export default function Login() {
-   const login = useUserStore( pull => pull.login)
+    const login = useUserStore(pull => pull.login)
 
     const [data, setData] = useState({
         email: '',
@@ -33,11 +35,17 @@ export default function Login() {
 
     console.log(data)
     return (
-        <div className="mt-20 bg-blue-100 text-center">
-            <div className="flex flex-col w-3/5 h-auto m-auto items-center bg-red-300 p-10">
-                <form className="flex flex-col gap-10 p-5 items-center m-auto" onSubmit={hdlLogin}>
-                    <div><p>Login</p></div>
-                    <label className="input input-bordered flex items-center gap-2">
+        <div className="w-screen h-screen flex items-center text-center">
+
+           <div className='w-full h-3/4 flex '>
+           <div className='w-[60%] h-full'>
+                <img src="https://res.cloudinary.com/djudr1vzc/image/upload/v1731374480/sunflower-1621990_1920_fiumqr.jpg" alt="sunflower image" className='h-full w-full object-cover' />
+            </div>
+
+            <div className="flex flex-col flex-grow h-full items-center justify-center p-10 " >
+                <form className="h-auto w-full flex flex-col gap-10 p-5 items-center justify-center" onSubmit={hdlLogin}>
+                    <div><p className='text-5xl font-bold'>Login</p></div>
+                    <label className="input input-bordered flex w-3/5 items-center gap-2">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 16 16"
@@ -51,11 +59,10 @@ export default function Login() {
                             value={data.email}
                             onChange={hdlDataChange}
                             type="text"
-                            className="grow"
                             placeholder="Username"
                         />
                     </label>
-                    <label className="input input-bordered flex items-center gap-2">
+                    <label className="w-3/5 input input-bordered flex items-center gap-2">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 16 16"
@@ -71,17 +78,18 @@ export default function Login() {
                             value={data.password}
                             onChange={hdlDataChange}
                             type="password"
+                            placeholder='Password'
                             className="grow"
                         />
                     </label>
-                    <button className="btn btn-error w-3/5">Login</button>
+                    <button className="btn w-3/5 bg-[#ECCC04] text-xl">Login</button>
                 </form>
+
                 <button
-                    className="btn btn-secondary"
+                    className="underline"
                     onClick={() => document.getElementById('register-modal').showModal()}
                 >Create Account
                 </button>
-            </div>
 
             <dialog className='modal' id='register-modal'>
                 <div className='modal-box'>
@@ -91,6 +99,9 @@ export default function Login() {
                     <Register />
                 </div>
             </dialog>
+            </div>
+           </div>
+
         </div>
     )
 }

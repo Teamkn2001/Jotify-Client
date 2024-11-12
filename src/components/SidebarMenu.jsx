@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import { AvatarIcon01 } from '../icons'
 import useUserStore from '../stores/userStore'
 import { v4 as uuidV4 } from 'uuid'
+import { FilePlus2 } from 'lucide-react';
+import { UserRoundPen } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 
 export default function SidebarMenu() {
     const navigate = useNavigate()
@@ -48,25 +51,25 @@ export default function SidebarMenu() {
         logout()
     }
     return (
-        <div className="bg-red-200 flex w-1/6 h-screen">
-            <div className="flex flex-col gap-5 m-auto">
+        <div className=" flex w-1/6 h-screen">
+            <div className="flex flex-col gap-[5rem] m-auto">
                 <Link to={'/profile'}
                     // onClick={hdlProfileMenu}
                     className="flex flex-col items-center">
-                    <AvatarIcon01 className='w-2/5' />
+                    <UserRoundPen size={60}/>
                     <p>Profile</p>
                 </Link>
                 <div
                     //  to={'/document'}
                     onClick={() => hdlCreateDoc()}
                     className="flex flex-col items-center">
-                    <AvatarIcon01 className='w-2/5' />
-                    <p>New</p>
+                    <FilePlus2 size={60}/>
+                    <p>New Document</p>
                 </div>
                 <div
                     onClick={hdlLogout}
                     className="flex flex-col items-center cursor-pointer">
-                    <AvatarIcon01 className='w-2/5' />
+                     <LogOut size={60}/>
                     <p>Logout</p>
                 </div>
             </div>

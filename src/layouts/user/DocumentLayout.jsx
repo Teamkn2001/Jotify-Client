@@ -5,7 +5,7 @@ import SidebarMenu from '../../components/SidebarMenu'
 import DocManageContent from '../../components/DocManageContent'
 import { Outlet } from 'react-router-dom'
 
-export default function DocManage() {
+export default function DocumentLayout() {
     return (
         <>
             <div className="flex ">

@@ -3,7 +3,7 @@ import React from 'react';
 
 const QuillToolbarMenu = () => {
   return (
-    <div id="toolbar">
+    <div id="toolbar" className='w-full bg-[#fcc280]'>
       <span className="ql-formats">
         <select className="ql-header">
           <option value="1">Heading 1</option>

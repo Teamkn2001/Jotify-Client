@@ -3,6 +3,8 @@ import useUserStore from '../stores/userStore'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { v4 as uuidV4} from 'uuid'
+import { FilePlus2 } from 'lucide-react';
+import leaves from '../../src/assets/leaves.svg'
 
 export default function DocManageContent() {
     const user = useUserStore(pull => pull.user)
@@ -51,10 +53,16 @@ export default function DocManageContent() {
         await getAllDoc(user.id, token)
     }
     return (
-        <div className="bg-blue-200 flex flex-grow max-h-screen">
-            <div className="flex bg-yellow-300 flex-grow m-5">
+        <div className="bg-blue-200 flex flex-grow max-h-screen" 
+        // style={{
+        //     backgroundImage: `url(${leaves})`,
+        //     backgroundSize: 'cover',
+        //     backgroundPosition: 'center'
+        // }}
+        >
+            <div className="flex  flex-grow m-5">
                 <div className="flex flex-col gap-4 m-4 flex-grow">
-                    <p>Files</p>
+                    <h1 className='text-2xl font-bold'>All Files</h1>
                     <label className="input input-bordered flex items-center gap-2 w-3/5">
                         <input
                             value={searchTitle}
@@ -74,7 +82,7 @@ export default function DocManageContent() {
                         </svg>
                     </label>
 
-                    <div className="flex flex-col gap-4 overflow-auto max-h-[60%] ">
+                    <div className="flex flex-col gap-4 overflow-auto max-h-[75%] ">
 
                         {allDocuments.map(el => (
                             <div

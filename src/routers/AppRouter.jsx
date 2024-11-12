@@ -3,7 +3,7 @@ import EditorPage from "../pages/EditorPage";
 import Stopwatch from "../pages/TestRef";
 import Login from "../pages/Login";
 import useUserStore from "../stores/userStore";
-import DocManage from "../pages/user/docManage";
+import DocumentLayout from "../layouts/user/DocumentLayout";
 import Profile from "../pages/user/Profile";
 
 const guessRouter = createBrowserRouter([
@@ -16,7 +16,7 @@ const guessRouter = createBrowserRouter([
 ])
 
 const userRouter = createBrowserRouter([
-    { path: '/', element: <DocManage />},
+    { path: '/', element: <DocumentLayout />},
     { path: 'profile', element: <Profile />},
     { path: 'document/:docId', element: <EditorPage />}
 
