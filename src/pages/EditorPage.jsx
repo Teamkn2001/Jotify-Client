@@ -27,32 +27,34 @@ const EditorPage = () => {
 
   const [focusNewPage, setFocusNewPage] = useState(false);
 
-  const handleContentChange = (index, contentHeight, content) => {
+  const handleContentChange = (pageNumber, contentHeight, content) => {
     setPages(prev => {
-      console.log("%c hdlContentChange",'background-color: yellow',"index =", index, "contentHeight =", contentHeight, "content =", content)
+      console.log("%c hdlContentChange",'background-color: yellow',"pageNumber =", pageNumber, "contentHeight =", contentHeight, "content =", content)
       const updatedPages = [...prev];
-      updatedPages[index] = content;
+      updatedPages[pageNumber] = content;
       return updatedPages;
     });
   };
 
-  const handlePageFull = (pageIndex, currentContent, remainingContent) => {
+  const handlePageFull = (pageNumber, currentContent, remainingContent) => {
     alert('page full')
+    alert('remain content',remainingContent)
     // console.log("%c handle Page full executed!!",'background-color: yellow')
     // console.log("%c data sent in hdlPageful :",'background-color: yellow', "index =", pageIndex, "cur content", currentContent, "remain cont. =", remainingContent)
     setPages(prev => {
       const updatedPages = [...prev];
       // console.log('hdl Page full updatedPages ===', updatedPages)
-
+      console.log('%c remain Contents =====','background-color: yellow', remainingContent);
       // If we have content to split
       if (remainingContent) {
         // Update current page
         if (currentContent) {
-          updatedPages[pageIndex] = currentContent;
+          updatedPages[pageNumber] = currentContent;
         }
 
         // Insert new page with remaining content
-        updatedPages.splice(pageIndex + 1, 0, '');
+        updatedPages.splice(pageNumber + 1, 0, remainingContent);
+        // updatedPages.splice(pageNumber + 1, 0, '');
       } else {
         // Just add a new empty page
         updatedPages.push('');
@@ -123,14 +125,14 @@ const EditorPage = () => {
           <h1>no socket user</h1>
         }
 
-        {pages.map((content, index) => (
+        {pages.map((content, pageNumber) => (
           <QuillPage
-            key={index}
-            pageIndex={index}
+            key={pageNumber}
+            pageNumber={pageNumber}
             initialContent={content}
-            onContentChange={(height, content) => handleContentChange(index, height, content)}
-            onPageFull={handlePageFull}
-            focusOnMount={focusNewPage && index === pages.length - 1}
+            handleContentChange={(height, content) => handleContentChange(pageNumber, height, content)}
+            handlePageFull={handlePageFull}
+            focusOnMount={focusNewPage && pageNumber === pages.length - 1}
           />
         ))}
       </div>
