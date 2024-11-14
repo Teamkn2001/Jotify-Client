@@ -4,6 +4,7 @@ import { useQuill } from 'react-quilljs';
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import ImageResize from 'quill-image-resize-module-react';
+import { CloudFog } from 'lucide-react';
 
 
 Quill.register('modules/imageResize', ImageResize);
@@ -34,10 +35,10 @@ const MAX_CONTENT_LENGTH = 10000; // Maximum characters per page fix later!!!!!!
 const QuillPage = ({ handleContentChange, initialContent = '', handlePageFull, pageNumber, focusOnMount }) => {
 
   // console.log( "%c 1 onContentChange =",'background-color: #90EE90', handleContentChange  )
-  console.log("%c 2 pageNumber = ",'background-color: #90EE90', pageNumber , "content on page = ", initialContent)
+  // console.log("%c 2 pageNumber = ",'background-color: #90EE90', pageNumber , "content on page = ", initialContent)
   // console.log("%c 3 onPageFull =",'background-color: #90EE90', onPageFull) // this ony called when function
-  console.log("%c 4 focusOnMount =",'background-color: #90EE90', focusOnMount)
- 
+  console.log("%c 4 focusOnMount =", 'background-color: #90EE90', focusOnMount)
+
   const { quill, quillRef } = useQuill({
     ...EDITOR_CONFIGS,
     theme: 'snow',
@@ -60,33 +61,43 @@ const QuillPage = ({ handleContentChange, initialContent = '', handlePageFull, p
       }, 100);
     }
 
-    // Set up image handling and file Reader
+    // Set up image handling and file Reader ( console log === orange salmon color)
     quill.getModule('toolbar').addHandler('image', () => {
       const input = document.createElement('input');
       input.setAttribute('type', 'file');
       input.setAttribute('accept', 'image/*');
       input.click();
 
-      input.onchange = async () => {
+      input.onchange = () => {
         const file = input.files[0];
         if (file) {
           const reader = new FileReader();
-          console.log('reader =', reader)
+
           reader.onload = (e) => {
-            const range = quill.getSelection(true);
-            console.log('range of cursor', range)
-            // Use insertEmbed instead of updateContents for images
-            quill.insertEmbed(range.index, 'image', e.target.result);
+            const img = new Image();
+            img.src = e.target.result;
+
+            img.onload = () => {
+              if (img.height > PAGE_HEIGHT) {
+                toast.error('Image too big nah!');
+                return;
+              }
+
+              // If we get here, image is small enough, so insert it
+              const range = quill.getSelection(true);
+              quill.insertEmbed(range.index, 'image', e.target.result);
+            };
           };
+
           reader.readAsDataURL(file);
         }
       };
     });
 
-    // Monitor content changes
+    // Monitor content changes ( console log === green)
     quill.on('text-change', () => {
       const editor = quillRef.current; // get whole div of this quill
-      // console.log('editor by quillRef.current =', editor)
+      // console.log(' 99 editor by quillRef.current =', editor)
 
       const contentHeight = editor?.clientHeight; // height of what user typed
       // console.log('contentHeight by editor client=', contentHeight)
@@ -94,34 +105,38 @@ const QuillPage = ({ handleContentChange, initialContent = '', handlePageFull, p
       const contentLength = quill.getText().length; // for limit characters length
 
       const content = quill.root.innerHTML; // get all content in html format
-      // console.log('%c 5content.root.innerHTML =', 'background-color: #90EE90' ,content)
+      console.log('%c 5 content.root.innerHTML =', 'background-color: #90EE90', content)
+
+      const iJustWantToSeeDeltaImg = quill.getContents();
+      console.log('%c delta with image is', 'background-color: #90EE90', iJustWantToSeeDeltaImg)
 
       // Check if content exceeds limits
       if (contentHeight > PAGE_HEIGHT || contentLength > MAX_CONTENT_LENGTH) {
         // Get cursor position
         const selection = quill.getSelection();
-        console.log('%c 8 selection =', 'background-color: #ADD8E6' , selection)
-        console.log('%c 9 quill.getLength -1 =', 'background-color:#ADD8E6' , quill.getLength() - 1)
-        if (!selection) return;
-        // If we're at the end of the content
-        if (selection.index === quill.getLength() - 1) {
-          handlePageFull(pageNumber);
-          return;
-        }
+        // console.log('%c 8 selection =', 'background-color: #ADD8E6' , selection)
+        // console.log('%c 9 quill.getLength -1 =', 'background-color:#ADD8E6' , quill.getLength() - 1)
+        // if (!selection) return;
 
-        alert("come to 2nd phase") 
+        // noob create a new page!!!!!
+        // if (selection.index === quill.getLength() - 1) {
+        //   handlePageFull(pageNumber);
+        //   return;
+        // }
+
+        alert("come to 2nd phase")
         // If we're in the middle of the content split it
         const contents = quill.getContents(0, selection.index); // this will get content till cursor position
-        console.log('%c 10 content by .getContents =', 'background-color: pink' , contents)
-        
+        console.log('%c 10 content by .getContents =', 'background-color: pink', contents)
+
         const remainingContents = quill.getContents(selection.index); // this is Delta object
-        console.log('%c 11 remain Contents =====','background-color: pink', remainingContents);
+        console.log('%c 11 remain Contents =====', 'background-color: pink', remainingContents);
 
         // *************  process change Delta ---->>> html(Pink log) ****************
         const tempContainer = document.createElement('div');
         const tempQuill = new Quill(tempContainer);
 
-        tempQuill.setContents(remainingContents);
+        tempQuill.setContents(remainingContents); // set the remain Delta in tempQuill
         const remainingContent = tempQuill.root.innerHTML
         console.log("%c 12 remainingContent", 'background-color: pink', remainingContent)
         // Update current page with content up to cursor

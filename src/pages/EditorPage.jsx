@@ -23,13 +23,20 @@ const EditorPage = () => {
   const [title, setTitle] = useState({ title: '' });
   const [pages, setPages] = useState(['']);
 
-  console.log('%c All page content','background-color: yellow', pages);
+  // page Controller activeness
+  const [ isPageActive, setIsPageActive ] = useState(null);
+
+  const handlePageActive = (pageNumber) => {
+    setIsPageActive(pageNumber);
+  }
+
+  console.log('%c All page content', 'background-color: yellow', pages);
 
   const [focusNewPage, setFocusNewPage] = useState(false);
 
   const handleContentChange = (pageNumber, contentHeight, content) => {
     setPages(prev => {
-      console.log("%c hdlContentChange",'background-color: yellow',"pageNumber =", pageNumber, "contentHeight =", contentHeight, "content =", content)
+      console.log("%c hdlContentChange", 'background-color: yellow', "pageNumber =", pageNumber, "contentHeight =", contentHeight, "content =", content)
       const updatedPages = [...prev];
       updatedPages[pageNumber] = content;
       return updatedPages;
@@ -38,13 +45,13 @@ const EditorPage = () => {
 
   const handlePageFull = (pageNumber, currentContent, remainingContent) => {
     alert('page full')
-    alert('remain content',remainingContent)
+    alert(remainingContent)
     // console.log("%c handle Page full executed!!",'background-color: yellow')
     // console.log("%c data sent in hdlPageful :",'background-color: yellow', "index =", pageIndex, "cur content", currentContent, "remain cont. =", remainingContent)
     setPages(prev => {
       const updatedPages = [...prev];
       // console.log('hdl Page full updatedPages ===', updatedPages)
-      console.log('%c remain Contents =====','background-color: yellow', remainingContent);
+      console.log('%c remain Contents =====', 'background-color: yellow', remainingContent);
       // If we have content to split
       if (remainingContent) {
         // Update current page
@@ -133,6 +140,7 @@ const EditorPage = () => {
             handleContentChange={(height, content) => handleContentChange(pageNumber, height, content)}
             handlePageFull={handlePageFull}
             focusOnMount={focusNewPage && pageNumber === pages.length - 1}
+            handlePageActive={() => handlePageActive(pageNumber)}
           />
         ))}
       </div>
