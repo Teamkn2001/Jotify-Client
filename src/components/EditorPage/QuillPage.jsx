@@ -24,12 +24,12 @@ const QuillPage = ({ handleContentChange, initialContent = '', handlePageFull, p
   // console.log("%c 3 onPageFull =",'background-color: #90EE90', onPageFull) // this ony called when function
   console.log("%c 4 focusOnMount =", 'background-color: #90EE90', focusOnMount)
 
-  const preToolbar = TOOLBAR_CONFIGS("1")
+  // const preToolbar = TOOLBAR_CONFIGS("1")
   // yellowLog('pretoolbar', preToolbar)
 
   const { quill, quillRef } = useQuill({
-    // ...TOOLBAR_CONFIGS,
-    ...preToolbar,
+    ...TOOLBAR_CONFIGS,
+    // ...preToolbar,
     theme: 'snow',
     preserveWhitespace: true,
   });

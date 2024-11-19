@@ -5,29 +5,9 @@ import yellowLog from '../services/yellowLog';
 
 Quill.register('modules/imageResize', ImageResize);
 
-const TOOLBAR_CONFIGS = (toolbarId) => ({
-    modules: {
-      toolbar: `#toolbar-${toolbarId}`,
-      imageResize: {
-        parchment: Quill.import('parchment'),
-        modules: ['Resize', 'DisplaySize'],
-        displaySize: true
-      }, 
-    },
-    formats: [
-      'header',
-      'bold', 'italic', 'underline', 'strike',
-      'list',
-      'align',
-      'link', 'image'
-    ]
-  });;
- 
-  export default TOOLBAR_CONFIGS;
-
-// const TOOLBAR_CONFIGS = {
+// const TOOLBAR_CONFIGS = (toolbarId) => ({
 //     modules: {
-//       toolbar: '#toolbar-1',
+//       toolbar: `#toolbar-${toolbarId}`,
 //       imageResize: {
 //         parchment: Quill.import('parchment'),
 //         modules: ['Resize', 'DisplaySize'],
@@ -41,6 +21,26 @@ const TOOLBAR_CONFIGS = (toolbarId) => ({
 //       'align',
 //       'link', 'image'
 //     ]
-//   };
-
+//   });;
+ 
 //   export default TOOLBAR_CONFIGS;
+
+const TOOLBAR_CONFIGS = {
+    modules: {
+      toolbar: '#toolbar',
+      imageResize: {
+        parchment: Quill.import('parchment'),
+        modules: ['Resize', 'DisplaySize'],
+        displaySize: true
+      }, 
+    },
+    formats: [
+      'header',
+      'bold', 'italic', 'underline', 'strike',
+      'list',
+      'align',
+      'link', 'image'
+    ]
+  };
+
+  export default TOOLBAR_CONFIGS;

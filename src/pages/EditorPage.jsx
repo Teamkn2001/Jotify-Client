@@ -127,7 +127,7 @@ const EditorPage = () => {
           clearCurrentDoc={clearCurrentDoc}
           user={user}
         />
-        <QuillToolbarMenu toolbarId="2"/>
+        <QuillToolbarMenu toolbarId={isPageActive}/>
       </div>
 
       <div className='relative'>
@@ -138,10 +138,6 @@ const EditorPage = () => {
         {
          <h1> Active page on EdiorPage= {isPageActive}</h1>
         }
-
-        {pages.map((content, pageNumber) => (
-           <QuillToolbarMenu toolbarId={pageNumber}/>
-        ))}
 
         {pages.map((content, pageNumber) => (
           <QuillPage
