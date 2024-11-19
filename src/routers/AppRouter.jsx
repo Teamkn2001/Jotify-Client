@@ -5,20 +5,24 @@ import Login from "../pages/Login";
 import useUserStore from "../stores/userStore";
 import DocumentLayout from "../layouts/user/DocumentLayout";
 import Profile from "../pages/user/Profile";
+import GuestLayout from "../layouts/guest/guestLayout";
 
 const guessRouter = createBrowserRouter([
-    // test clock------------
-    // { path: '/', element: <Stopwatch />}
-
-    // ---------------------
-    { path: '/', element: <Login /> },
+    {
+        path: '/',
+        element: <GuestLayout />,   
+        children: [
+            { index: true, element: <Login /> },
+        ]
+    },
+    // not found page here not have yet
     { path: '*', element: <Navigate to='/' /> }
 ])
 
 const userRouter = createBrowserRouter([
-    { path: '/', element: <DocumentLayout />},
-    { path: 'profile', element: <Profile />},
-    { path: 'document/:docId', element: <EditorPage />}
+    { path: '/', element: <DocumentLayout /> },
+    { path: 'profile', element: <Profile /> },
+    { path: 'document/:docId', element: <EditorPage /> }
 
 ])
 

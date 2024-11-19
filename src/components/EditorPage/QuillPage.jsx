@@ -1,49 +1,44 @@
-import React, { useEffect, useState } from 'react';
+import React, { act, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useQuill } from 'react-quilljs';
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import ImageResize from 'quill-image-resize-module-react';
 import { CloudFog } from 'lucide-react';
+import yellowLog from '../../services/yellowLog';
+import orange from '../../services/orange';
+import setToolbarId from '../../configs/toolbar';
+import TOOLBAR_CONFIGS from '../../configs/toolbar';
 
 
-Quill.register('modules/imageResize', ImageResize);
-
-// ------------------------jsx ------------------------------
-const EDITOR_CONFIGS = {
-  modules: {
-    toolbar: '#toolbar',
-    imageResize: {
-      parchment: Quill.import('parchment'),
-      modules: ['Resize', 'DisplaySize'],
-      displaySize: true
-    }
-  },
-  formats: [
-    'header',
-    'bold', 'italic', 'underline', 'strike',
-    'list',
-    'align',
-    'link', 'image'
-  ]
-};
+// Quill.register('modules/imageResize', ImageResize);
 
 const PAGE_HEIGHT = 300;
 const MAX_CONTENT_LENGTH = 10000; // Maximum characters per page fix later!!!!!!!!
 
 // --------------------------------------------------------------------------------
-const QuillPage = ({ handleContentChange, initialContent = '', handlePageFull, pageNumber, focusOnMount }) => {
+const QuillPage = ({ handleContentChange, initialContent = '', handlePageFull, pageNumber, focusOnMount, handlePageActive, isPageActive }) => {
 
   // console.log( "%c 1 onContentChange =",'background-color: #90EE90', handleContentChange  )
   // console.log("%c 2 pageNumber = ",'background-color: #90EE90', pageNumber , "content on page = ", initialContent)
   // console.log("%c 3 onPageFull =",'background-color: #90EE90', onPageFull) // this ony called when function
   console.log("%c 4 focusOnMount =", 'background-color: #90EE90', focusOnMount)
 
+  const preToolbar = TOOLBAR_CONFIGS("1")
+  // yellowLog('pretoolbar', preToolbar)
+
   const { quill, quillRef } = useQuill({
-    ...EDITOR_CONFIGS,
+    // ...TOOLBAR_CONFIGS,
+    ...preToolbar,
     theme: 'snow',
     preserveWhitespace: true,
   });
+
+  // Add a ref to track if we're handling an image insertion
+  let currentPageRef = useRef(pageNumber);
+  useEffect(() => {
+    currentPageRef.current = pageNumber;
+  }, [pageNumber]);
 
   useEffect(() => {
     if (!quill) return;
@@ -61,14 +56,36 @@ const QuillPage = ({ handleContentChange, initialContent = '', handlePageFull, p
       }, 100);
     }
 
-    // Set up image handling and file Reader ( console log === orange salmon color)
+    // Monitor control Page Active
+    quill.on('selection-change', (range) => {
+      if (range) {
+        handlePageActive(currentPageRef.current);
+      }
+    }
+    )
+
+    // Set up image handling and file Reader (console log === orange salmon color)
     quill.getModule('toolbar').addHandler('image', () => {
+
+      const isCursorActive = quill.hasFocus()
+      if (!isCursorActive) {
+        toast.warning('Please click on the page where you want to insert the image');
+        return;
+      }
+
+      const pageInActive = isPageActive
+      const currentQuill = currentPageRef.current
+      console.log('%c page state', 'background-color: red; color: white', 'Active =', pageInActive, ' current =', currentQuill)
+
+      if (isPageActive != pageNumber) return
+
       const input = document.createElement('input');
       input.setAttribute('type', 'file');
       input.setAttribute('accept', 'image/*');
       input.click();
 
       input.onchange = () => {
+
         const file = input.files[0];
         if (file) {
           const reader = new FileReader();
@@ -83,12 +100,16 @@ const QuillPage = ({ handleContentChange, initialContent = '', handlePageFull, p
                 return;
               }
 
-              // If we get here, image is small enough, so insert it
+              // get here, image is small enough, so insert it
               const range = quill.getSelection(true);
-              quill.insertEmbed(range.index, 'image', e.target.result);
+              if (range) {
+                quill.insertEmbed(range.index, 'image', e.target.result);
+              } else {
+                const lastIndex = quill.getLength() - 1;
+                quill.insertEmbed(lastIndex, 'image', e.target.result)
+              }
             };
           };
-
           reader.readAsDataURL(file);
         }
       };
@@ -124,7 +145,6 @@ const QuillPage = ({ handleContentChange, initialContent = '', handlePageFull, p
         //   return;
         // }
 
-        alert("come to 2nd phase")
         // If we're in the middle of the content split it
         const contents = quill.getContents(0, selection.index); // this will get content till cursor position
         console.log('%c 10 content by .getContents =', 'background-color: pink', contents)
@@ -170,8 +190,11 @@ const QuillPage = ({ handleContentChange, initialContent = '', handlePageFull, p
   }, [quill]);
 
   return (
-    <div className='no-border bg-white shadow-md w-[794px] min-h-[400px] m-auto p-16 mb-9 overflow-hidden'>
-      <div ref={quillRef} className='quill-page' />
+    <div>
+      <h1>active in Quill map = {isPageActive}</h1>
+      <div className='no-border bg-white shadow-md w-[794px] min-h-[420px] m-auto p-16 mb-9 overflow-hidden'>
+        <div ref={quillRef} className='quill-page' />
+      </div>
     </div>
   );
 };

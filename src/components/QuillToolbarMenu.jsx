@@ -1,9 +1,10 @@
 // QuillToolbar.jsx
 import React from 'react';
 
-const QuillToolbarMenu = () => {
-  return (
-    <div id="toolbar" className='w-full bg-[#fcc280]'>
+const QuillToolbarMenu = ({toolbarId}) => {
+  console.log('toobarID =',toolbarId)
+  return ( 
+    <div id={`toolbar-${toolbarId}`} className='w-full bg-[#fcc280]'>
       <span className="ql-formats">
         <select className="ql-header">
           <option value="1">Heading 1</option>

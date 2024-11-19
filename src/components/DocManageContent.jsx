@@ -54,11 +54,11 @@ export default function DocManageContent() {
     }
     return (
         <div className="bg-blue-200 flex flex-grow max-h-screen" 
-        // style={{
-        //     backgroundImage: `url(${leaves})`,
-        //     backgroundSize: 'cover',
-        //     backgroundPosition: 'center'
-        // }}
+        style={{
+            backgroundImage: `url(${leaves})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+        }}
         >
             <div className="flex  flex-grow m-5">
                 <div className="flex flex-col gap-4 m-4 flex-grow">
@@ -81,14 +81,15 @@ export default function DocManageContent() {
                                 clipRule="evenodd" />
                         </svg>
                     </label>
+                    
 
-                    <div className="flex flex-col gap-4 overflow-auto max-h-[75%] ">
+                    <div className="flex flex-col gap-4 overflow-auto max-h-[75%] hide-scrollbar ">
 
                         {allDocuments.map(el => (
                             <div
                                 onClick={(e) => hdlSetCurrentDoc(e, el.id)}
                                 key={el.id}
-                                className='bg-pink-400 p-4 w-[95%] rounded-xl flex justify-between px-14 cursor-pointer'>
+                                className='bg-pink-400 p-4 w-[95%] rounded-xl flex justify-between px-14 cursor-pointer hover:text-2xl hover:w-[97%] '>
                                 <p>{el.title}</p>
                                 <button
                                     onClick={(e) => hdlDeleteDoc(e, el.id)}

@@ -8,7 +8,9 @@ import io from 'socket.io-client';
 import QuillToolbarMenu from '../components/QuillToolbarMenu';
 import leaves from '../../src/assets/leaves.svg'
 import QuillPage from '../components/EditorPage/QuillPage'
-
+import yellowLog from '../services/yellowLog';
+import greenLog from '../services/greenLog';
+import blueLog from '../services/blueLog';
 
 const EditorPage = () => {
   const { docId } = useParams();
@@ -24,9 +26,13 @@ const EditorPage = () => {
   const [pages, setPages] = useState(['']);
 
   // page Controller activeness
-  const [ isPageActive, setIsPageActive ] = useState(null);
+  let [ isPageActive, setIsPageActive ] = useState(0);
+  // const [ toolbarId, setToolbarId ] = useState(0);
 
   const handlePageActive = (pageNumber) => {
+    const gadget = {
+      isPageActive: isPageActive,
+    }
     setIsPageActive(pageNumber);
   }
 
@@ -43,9 +49,12 @@ const EditorPage = () => {
     });
   };
 
+
   const handlePageFull = (pageNumber, currentContent, remainingContent) => {
+  
     alert('page full')
-    alert(remainingContent)
+    console.log('%c remainingContent', 'background-color: yellow', remainingContent);
+ 
     // console.log("%c handle Page full executed!!",'background-color: yellow')
     // console.log("%c data sent in hdlPageful :",'background-color: yellow', "index =", pageIndex, "cur content", currentContent, "remain cont. =", remainingContent)
     setPages(prev => {
@@ -110,12 +119,7 @@ const EditorPage = () => {
   return (
     <div className='flex flex-col bg-[#f8d7b1]'>
 
-      {/* header and toolbar */}
-      <div className='flex flex-col sticky top-0 z-10 bg-[#FFB25B]'
-      // style={{
-      //   backgroundImage: `url(${leaves})`,
-      // }}
-      >
+      <div className='flex flex-col sticky top-0 z-10 bg-[#FFB25B]'>
         <HeaderMenu
           title={title}
           hdlTitleChange={hdlTitleChange}
@@ -123,7 +127,7 @@ const EditorPage = () => {
           clearCurrentDoc={clearCurrentDoc}
           user={user}
         />
-        <QuillToolbarMenu />
+        <QuillToolbarMenu toolbarId="2"/>
       </div>
 
       <div className='relative'>
@@ -131,6 +135,13 @@ const EditorPage = () => {
           <h1 className='bg-red-600 mb-3'>user :{socket.id}</h1> :
           <h1>no socket user</h1>
         }
+        {
+         <h1> Active page on EdiorPage= {isPageActive}</h1>
+        }
+
+        {pages.map((content, pageNumber) => (
+           <QuillToolbarMenu toolbarId={pageNumber}/>
+        ))}
 
         {pages.map((content, pageNumber) => (
           <QuillPage
@@ -141,6 +152,7 @@ const EditorPage = () => {
             handlePageFull={handlePageFull}
             focusOnMount={focusNewPage && pageNumber === pages.length - 1}
             handlePageActive={() => handlePageActive(pageNumber)}
+            isPageActive={isPageActive}
           />
         ))}
       </div>
