@@ -2,9 +2,9 @@
 import React from 'react';
 
 const QuillToolbarMenu = ({toolbarId}) => {
-  console.log('toobarID =',toolbarId)
+  console.log('%c QuillToolbarMenu =','color: red', `toolbar-${toolbarId}`)
   return ( 
-    <div id={`toolbar`} className='w-full bg-[#fcc280]'>
+    <div id={`toolbar-${toolbarId}`} className='w-full bg-[#fcc280]'>
       <span className="ql-formats">
         <select className="ql-header">
           <option value="1">Heading 1</option>

@@ -1,7 +1,6 @@
 import React, { act, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useQuill } from 'react-quilljs';
-import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import ImageResize from 'quill-image-resize-module-react';
 import { CloudFog } from 'lucide-react';
@@ -9,7 +8,7 @@ import yellowLog from '../../services/yellowLog';
 import orange from '../../services/orange';
 import setToolbarId from '../../configs/toolbar';
 import TOOLBAR_CONFIGS from '../../configs/toolbar';
-
+import Quill from 'quill';
 
 // Quill.register('modules/imageResize', ImageResize);
 
@@ -24,12 +23,11 @@ const QuillPage = ({ handleContentChange, initialContent = '', handlePageFull, p
   // console.log("%c 3 onPageFull =",'background-color: #90EE90', onPageFull) // this ony called when function
   console.log("%c 4 focusOnMount =", 'background-color: #90EE90', focusOnMount)
 
-  // const preToolbar = TOOLBAR_CONFIGS("1")
+  const preToolbar = TOOLBAR_CONFIGS(true, pageNumber)
   // yellowLog('pretoolbar', preToolbar)
 
   const { quill, quillRef } = useQuill({
-    ...TOOLBAR_CONFIGS,
-    // ...preToolbar,
+    ...preToolbar,
     theme: 'snow',
     preserveWhitespace: true,
   });
@@ -63,57 +61,57 @@ const QuillPage = ({ handleContentChange, initialContent = '', handlePageFull, p
       }
     }
     )
-
+    console.log("%c executed at ==============",' background-color: red',  pageNumber)
     // Set up image handling and file Reader (console log === orange salmon color)
-    quill.getModule('toolbar').addHandler('image', () => {
+    // quill.getModule('toolbar').addHandler('image', () => {
 
-      const isCursorActive = quill.hasFocus()
-      if (!isCursorActive) {
-        toast.warning('Please click on the page where you want to insert the image');
-        return;
-      }
+    //   const isCursorActive = quill.hasFocus()
+    //   if (!isCursorActive) {
+    //     toast.warning('Please click on the page where you want to insert the image');
+    //     return;
+    //   }
 
-      const pageInActive = isPageActive
-      const currentQuill = currentPageRef.current
-      console.log('%c page state', 'background-color: red; color: white', 'Active =', pageInActive, ' current =', currentQuill)
+    //   const pageInActive = isPageActive
+    //   const currentQuill = currentPageRef.current
+    //   console.log('%c page state', 'background-color: red; color: white', 'Active =', pageInActive, ' current =', currentQuill)
 
-      if (isPageActive != pageNumber) return
+    //   if (isPageActive != pageNumber) return
 
-      const input = document.createElement('input');
-      input.setAttribute('type', 'file');
-      input.setAttribute('accept', 'image/*');
-      input.click();
+    //   const input = document.createElement('input');
+    //   input.setAttribute('type', 'file');
+    //   input.setAttribute('accept', 'image/*');
+    //   input.click();
 
-      input.onchange = () => {
+    //   input.onchange = () => {
 
-        const file = input.files[0];
-        if (file) {
-          const reader = new FileReader();
+    //     const file = input.files[0];
+    //     if (file) {
+    //       const reader = new FileReader();
 
-          reader.onload = (e) => {
-            const img = new Image();
-            img.src = e.target.result;
+    //       reader.onload = (e) => {
+    //         const img = new Image();
+    //         img.src = e.target.result;
 
-            img.onload = () => {
-              if (img.height > PAGE_HEIGHT) {
-                toast.error('Image too big nah!');
-                return;
-              }
+    //         img.onload = () => {
+    //           if (img.height > PAGE_HEIGHT) {
+    //             toast.error('Image too big nah!');
+    //             return;
+    //           }
 
-              // get here, image is small enough, so insert it
-              const range = quill.getSelection(true);
-              if (range) {
-                quill.insertEmbed(range.index, 'image', e.target.result);
-              } else {
-                const lastIndex = quill.getLength() - 1;
-                quill.insertEmbed(lastIndex, 'image', e.target.result)
-              }
-            };
-          };
-          reader.readAsDataURL(file);
-        }
-      };
-    });
+    //           // get here, image is small enough, so insert it
+    //           const range = quill.getSelection(true);
+    //           if (range) {
+    //             quill.insertEmbed(range.index, 'image', e.target.result);
+    //           } else {
+    //             const lastIndex = quill.getLength() - 1;
+    //             quill.insertEmbed(lastIndex, 'image', e.target.result)
+    //           }
+    //         };
+    //       };
+    //       reader.readAsDataURL(file);
+    //     }
+    //   };
+    // });
 
     // Monitor content changes ( console log === green)
     quill.on('text-change', () => {
