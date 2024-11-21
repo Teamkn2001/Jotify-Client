@@ -14,8 +14,8 @@ import Quill from 'quill';
 
 const PAGE_HEIGHT = 300;
 const MAX_CONTENT_LENGTH = 10000; // Maximum characters per page fix later!!!!!!!!
-// -------------------------------------------------------------------------------
-// QuillPage.jsx
+
+// ----------------- QuillPage Component -----------------
 const QuillPage = ({
   modules,
   handleContentChange,
@@ -27,24 +27,21 @@ const QuillPage = ({
   onActivePage,
   onQuillInit
 }) => {
-  // Remove the modules spread in useQuill to use the parent's modules directly
   const { quill, quillRef } = useQuill({
-    modules, // Use modules directly without spreading
-    // theme: 'snow',
+    modules, 
+    theme: 'snow',
     preserveWhitespace: true,
   });
 
   useEffect(() => {
+    console.log('🌈🌈🌈🌈',quill)
     if (!quill) return;
-    
     // Register quill instance
     onQuillInit(quill);
-
     // Set initial content if provided
     if (initialContent) {
       quill.root.innerHTML = initialContent;
     }
-
     // Focus handling for new pages
     if (focusOnMount) {
       setTimeout(() => {
@@ -53,16 +50,15 @@ const QuillPage = ({
         onActivePage();
       }, 100);
     }
-
     // Monitor Page Active state
     const handleSelection = (range) => {
+      console.log("range ====",range)
       if (range) {
         onActivePage();
       }
     };
-
     quill.on('selection-change', handleSelection);
-
+    
     // Handle content changes
     quill.on('text-change', () => {
       const editor = quillRef.current;
@@ -85,7 +81,6 @@ const QuillPage = ({
         quill.setContents(contents);
         handlePageFull(pageNumber, quill.root.innerHTML, remainingContent);
       }
-
       handleContentChange(contentHeight, content);
     });
 

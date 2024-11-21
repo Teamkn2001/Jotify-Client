@@ -8,9 +8,7 @@ import io from 'socket.io-client';
 import QuillToolbarMenu from '../components/QuillToolbarMenu';
 import leaves from '../../src/assets/leaves.svg'
 import QuillPage from '../components/EditorPage/QuillPage'
-import yellowLog from '../services/yellowLog';
 import greenLog from '../services/greenLog';
-import blueLog from '../services/blueLog';
 
 const EditorPage = () => {
   const { docId } = useParams();
@@ -24,21 +22,20 @@ const EditorPage = () => {
 
   const [title, setTitle] = useState({ title: '' });
   const [pages, setPages] = useState(['']);
-
+  const [focusNewPage, setFocusNewPage] = useState(false);
+  const [activePageNumber, setActivePageNumber] = useState(0);
+  const [activeQuill, setActiveQuill] = useState(null)
+  
   // --------------------------Debug !!--------------------------------------------
   const debugRef = useRef({
     lastAction: '',
     lastPage: null
   });
   //  -----------`-----------------Debug !!--------------------------------------------
-
-  // page Controller activeness
-  const [activePageNumber, setActivePageNumber] = useState(0);
-  const [activeQuill, setActiveQuill] = useState(null)
-
   // Keep track of all quill instances
-  const [quillInstances, setQuillInstances] = useState({});
+  const [quillInstances, setQuillInstances] = useState({}); // key: pageNumber, value: quillInstance
   greenLog('quillInstances =====', quillInstances);
+  greenLog('quillInstances =====', activePageNumber);
 
   const registerQuill = (pageNumber, quillInstance) => {
     console.log("🎇 =======",pageNumber, quillInstance);
@@ -58,6 +55,7 @@ const EditorPage = () => {
   const handleToolbarAction = (action, value) => {
     console.log("%c this function run in toolbar handler including",'background-color: pink' ,action, value)
     const currentQuill = quillInstances[activePageNumber];
+    console.log("%c currentQuill ===", 'background-color: pink', currentQuill)
     if (!currentQuill) {
       toast.warning('Please select a page first');
       return;
@@ -137,8 +135,6 @@ const EditorPage = () => {
   };
 
   // console.log('%c All page content', 'background-color: yellow', pages);
-
-  const [focusNewPage, setFocusNewPage] = useState(false);
 
   const handleContentChange = (pageNumber, contentHeight, content) => {
     setPages(prev => {

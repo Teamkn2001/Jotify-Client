@@ -2,6 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import Avatar from './Avatar'
 import Permission from './Permission'
+import { History, LogOut, Users } from 'lucide-react'
 
 export default function HeaderMenu({title, hdlTitleChange, hdlSave, clearCurrentDoc, user}) {
   return (
@@ -38,15 +39,15 @@ export default function HeaderMenu({title, hdlTitleChange, hdlSave, clearCurrent
           </div>
         </div>
 
-        <div className='flex gap-4 items-center'>
+        <div className='flex gap-10 items-center'>
           <Link to={'/'}
             onClick={() => clearCurrentDoc()}
           >
-            I'm out Icon
+           <LogOut /> 
           </Link>
 
           <div onClick={() => document.getElementById('permission-setting').showModal()}>
-            <p className='text-red-500'>Permission</p>
+          <Users />
           </div>
 
           <dialog id='permission-setting' className='modal'>
@@ -54,7 +55,7 @@ export default function HeaderMenu({title, hdlTitleChange, hdlSave, clearCurrent
           </dialog>
 
           <div onClick={() => document.getElementById('rollback-setting').showModal()}>
-            rollback
+          <History />
           </div>
           <dialog id='rollback-setting' className='modal'>
             {/* <RollBack token={token} documentId={documentId} documentDetail={findContentByDocumentId} setContent={setContent} /> */}
