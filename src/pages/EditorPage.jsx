@@ -25,18 +25,26 @@ const EditorPage = () => {
   const [title, setTitle] = useState({ title: '' });
   const [pages, setPages] = useState(['']);
 
+  // --------------------------Debug !!--------------------------------------------
+  const debugRef = useRef({
+    lastAction: '',
+    lastPage: null
+  });
+
+  //  -----------`-----------------Debug !!--------------------------------------------
+
   // page Controller activeness
   const [activePageNumber, setActivePageNumber] = useState(0);
   const [activeQuill, setActiveQuill] = useState(null)
 
   // Keep track of all quill instances
   const [quillInstances, setQuillInstances] = useState({});
+  greenLog('quillInstances =====', quillInstances);
 
-    // Add ref to track if toolbar action is in progress
-    const isToolbarAction = useRef(false);
+  // Add ref to track if toolbar action is in progress
+  const toolbarActionInProgress = useRef(false);
 
   const registerQuill = (pageNumber, quillInstance) => {
-    console.log('Registering quill instance for page:', pageNumber);
     setQuillInstances(prev => ({
       ...prev,
       [pageNumber]: quillInstance
@@ -44,34 +52,66 @@ const EditorPage = () => {
   };
 
   const handlePageActive = (pageNumber) => {
-    console.log('Activating page:', pageNumber);
-    if (!isToolbarAction.current) {
+    console.log('🟡 Page activation requested:', {
+      requestedPage: pageNumber,
+      currentActivePage: activePageNumber,
+      source: debugRef.current.lastAction
+    });
+
+    // Only update if actually changing pages
+    if (!toolbarActionInProgress.current) {
       setActivePageNumber(pageNumber);
       setActiveQuill(quillInstances[pageNumber]);
     }
   }
 
+  // Create a function to handle toolbar formatting
+  const handleToolbarAction = (action) => {
+    toolbarActionInProgress.current = true;
+
+    const currentQuill = quillInstances[activePageNumber];
+    if (!currentQuill) {
+      toolbarActionInProgress.current = false;
+      return;
+    }
+
+    // Ensure the correct editor has focus
+    if (!currentQuill.hasFocus()) {
+      currentQuill.focus();
+    }
+
+    // Let default Quill toolbar handlers work
+    setTimeout(() => {
+      toolbarActionInProgress.current = false;
+    }, 100);
+  };
+
   const modules = {
     toolbar: {
       container: '#toolbar',
       handlers: {
+        // Handle formatting buttons
+        bold: () => handleToolbarAction('bold'),
+        italic: () => handleToolbarAction('italic'),
+        underline: () => handleToolbarAction('underline'),
+        strike: () => handleToolbarAction('strike'),
+
+        // Handle image separately as it needs more complex logic
         image: function () {
-          isToolbarAction.current = true;
+          toolbarActionInProgress.current = true;
 
-          const currentQuill = quillInstances[activePageNumber]
-          console.log('Current active page:', activePageNumber);
-          console.log('Current quill instance:', currentQuill);
-
+          const currentQuill = quillInstances[activePageNumber];
           if (!currentQuill) {
+            toolbarActionInProgress.current = false;
             toast.warning('Please select a page first');
-            isToolbarAction.current = false;
             return;
           }
 
+          // Ensure focus is on correct editor
           if (!currentQuill.hasFocus()) {
             currentQuill.focus();
           }
-          // Create and trigger file input
+
           const input = document.createElement('input');
           input.setAttribute('type', 'file');
           input.setAttribute('accept', 'image/*');
@@ -89,29 +129,62 @@ const EditorPage = () => {
                 img.onload = () => {
                   if (img.height > PAGE_HEIGHT) {
                     toast.error('Image too big nah!');
+                    toolbarActionInProgress.current = false;
                     return;
                   }
 
-                  if (currentSelection) {
-                    currentQuill.setSelection(currentSelection);
-                  }
+                  const range = currentQuill.getSelection(true);
+                  currentQuill.insertEmbed(
+                    range ? range.index : currentQuill.getLength() - 1,
+                    'image',
+                    e.target.result
+                  );
 
-                  // Insert image
-                  if (currentSelection) {
-                    currentQuill.insertEmbed(currentSelection.index, 'image', e.target.result);
-                  } else {
-                    const lastIndex = currentQuill.getLength() - 1;
-                    currentQuill.insertEmbed(lastIndex, 'image', e.target.result);
-                  }
+                  setTimeout(() => {
+                    toolbarActionInProgress.current = false;
+                  }, 100);
                 };
               };
               reader.readAsDataURL(file);
+            } else {
+              toolbarActionInProgress.current = false;
             }
           };
         }
       }
     }
   };
+
+  // const handleImageUpload = (currentQuill) => {
+  //   const input = document.createElement('input');
+  //   input.setAttribute('type', 'file');
+  //   input.setAttribute('accept', 'image/*');
+  //   input.click();
+
+  //   input.onchange = () => {
+  //     const file = input.files[0];
+  //     if (file) {
+  //       const reader = new FileReader();
+  //       reader.onload = (e) => {
+  //         const img = new Image();
+  //         img.src = e.target.result;
+
+  //         img.onload = () => {
+  //           if (img.height > PAGE_HEIGHT) {
+  //             toast.error('Image too big nah!');
+  //             return;
+  //           }
+
+  //           // Ensure we have proper selection before inserting
+  //           const selection = currentQuill.getSelection(true);
+  //           const insertAt = selection ? selection.index : currentQuill.getLength() - 1;
+  //           currentQuill.insertEmbed(insertAt, 'image', e.target.result);
+  //         };
+  //       };
+  //       reader.readAsDataURL(file);
+  //     }
+  //   };
+  // };
 
   console.log('%c All page content', 'background-color: yellow', pages);
 
@@ -129,7 +202,6 @@ const EditorPage = () => {
   const handlePageFull = (pageNumber, currentContent, remainingContent) => {
     alert('page full')
     console.log('%c remainingContent', 'background-color: yellow', remainingContent);
-
     // console.log("%c handle Page full executed!!",'background-color: yellow')
     // console.log("%c data sent in hdlPageful :",'background-color: yellow', "index =", pageIndex, "cur content", currentContent, "remain cont. =", remainingContent)
     setPages(prev => {
@@ -142,7 +214,6 @@ const EditorPage = () => {
         if (currentContent) {
           updatedPages[pageNumber] = currentContent;
         }
-
         // Insert new page with remaining content
         updatedPages.splice(pageNumber + 1, 0, remainingContent);
         // updatedPages.splice(pageNumber + 1, 0, '');
@@ -159,7 +230,7 @@ const EditorPage = () => {
     const newValue = e.target.value;
     setTitle(prev => ({ ...prev, [e.target.name]: newValue }));
   };
-
+  
   useEffect(() => {
     let intervalAxios = setTimeout(() => {
       if (title.title.trim()) {
@@ -240,9 +311,6 @@ const EditorPage = () => {
           <h1 className='bg-red-600 mb-3'>user :{socket.id}</h1> :
           <h1>no socket user</h1>
         }
-        {
-          <h1> activePageNumber ==== {activePageNumber}</h1>
-        }
 
         {pages.map((content, pageNumber) => (
           <QuillPage
@@ -256,6 +324,8 @@ const EditorPage = () => {
             handleContentChange={(height, content) => handleContentChange(pageNumber, height, content)}
             handlePageFull={handlePageFull}
             focusOnMount={focusNewPage && pageNumber === pages.length - 1}
+            debugRef={debugRef}
+            toolbarActionInProgress={toolbarActionInProgress}
           />
         ))}
       </div>

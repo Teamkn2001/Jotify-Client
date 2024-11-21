@@ -26,7 +26,9 @@ const QuillPage = ({
   focusOnMount, 
   isPageActive, 
   onActivePage, 
-  onQuillInit 
+  onQuillInit,
+  toolbarActionInProgress,
+  debugRef
 }) => {
   const { quill, quillRef } = useQuill({
     modules,
@@ -39,7 +41,6 @@ const QuillPage = ({
 
   useEffect(() => {
     if (!quill) return;
-
     // Register quill instance
     onQuillInit(quill);
 
@@ -71,8 +72,9 @@ const QuillPage = ({
     };
 
     // Monitor Page Active state
-    const handleSelection = (range, oldRange, source) => {
-      if (range && !isToolbarAction.current) {
+    const handleSelection = (range) => {
+      // Only handle selection changes if not during toolbar action
+      if (range && !toolbarActionInProgress.current) {
         onActivePage();
       }
     };
@@ -115,13 +117,13 @@ const QuillPage = ({
       className={`quill-page-container ${isPageActive ? 'ring-2 ring-blue-500' : ''}`}
       onClick={(e) => {
         // Only activate if clicking directly on the editor
-        if (e.target.closest('.ql-editor')) {
+        if (e.target.closest('.ql-editor') && !toolbarActionInProgress.current) {
           onActivePage();
         }
       }}
     >
       <div className='bg-white shadow-md w-[794px] min-h-[420px] m-auto p-16 mb-9 overflow-hidden'>
-        <div ref={quillRef} className='quill-page' />
+        <div ref={quillRef} className='quill-page border-none' />
       </div>
     </div>
   );
