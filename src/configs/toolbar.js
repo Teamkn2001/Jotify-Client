@@ -42,7 +42,6 @@ Quill.register('modules/imageResize', ImageResize);
 //       'link', 'image'
 //     ]
 //   };
-
 //   export default TOOLBAR_CONFIGS;
 
   const TOOLBAR_CONFIGS = (enable = true, toolbarId) => (
