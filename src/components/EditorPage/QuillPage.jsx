@@ -14,33 +14,29 @@ import Quill from 'quill';
 
 const PAGE_HEIGHT = 300;
 const MAX_CONTENT_LENGTH = 10000; // Maximum characters per page fix later!!!!!!!!
-
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------
 // QuillPage.jsx
-const QuillPage = ({ 
-  modules, 
-  handleContentChange, 
-  initialContent = '', 
-  handlePageFull, 
-  pageNumber, 
-  focusOnMount, 
-  isPageActive, 
-  onActivePage, 
-  onQuillInit,
-  toolbarActionInProgress,
-  debugRef
+const QuillPage = ({
+  modules,
+  handleContentChange,
+  initialContent = '',
+  handlePageFull,
+  pageNumber,
+  focusOnMount,
+  isPageActive,
+  onActivePage,
+  onQuillInit
 }) => {
+  // Remove the modules spread in useQuill to use the parent's modules directly
   const { quill, quillRef } = useQuill({
-    modules,
-    theme: 'snow',
+    modules, // Use modules directly without spreading
+    // theme: 'snow',
     preserveWhitespace: true,
   });
 
-  // Add ref to track if toolbar action is in progress
-  const isToolbarAction = useRef(false);
-
   useEffect(() => {
     if (!quill) return;
+    
     // Register quill instance
     onQuillInit(quill);
 
@@ -58,30 +54,16 @@ const QuillPage = ({
       }, 100);
     }
 
-    // Track toolbar actions
-    const toolbar = quill.getModule('toolbar');
-    const oldHandler = toolbar.toolbarClickHandler;
-    
-    toolbar.toolbarClickHandler = function(...args) {
-      isToolbarAction.current = true;
-      oldHandler.call(toolbar, ...args);
-      // Reset after short delay
-      setTimeout(() => {
-        isToolbarAction.current = false;
-      }, 50);
-    };
-
     // Monitor Page Active state
     const handleSelection = (range) => {
-      // Only handle selection changes if not during toolbar action
-      if (range && !toolbarActionInProgress.current) {
+      if (range) {
         onActivePage();
       }
     };
-    
+
     quill.on('selection-change', handleSelection);
 
-    // Rest of your existing text-change handler...
+    // Handle content changes
     quill.on('text-change', () => {
       const editor = quillRef.current;
       const contentHeight = editor?.clientHeight;
@@ -113,19 +95,15 @@ const QuillPage = ({
   }, [quill]);
 
   return (
-    <div 
+    <div
       className={`quill-page-container ${isPageActive ? 'ring-2 ring-blue-500' : ''}`}
-      onClick={(e) => {
-        // Only activate if clicking directly on the editor
-        if (e.target.closest('.ql-editor') && !toolbarActionInProgress.current) {
-          onActivePage();
-        }
-      }}
+      onClick={() => onActivePage()}
     >
-      <div className='bg-white shadow-md w-[794px] min-h-[420px] m-auto p-16 mb-9 overflow-hidden'>
-        <div ref={quillRef} className='quill-page border-none' />
+      <div className='bg-white shadow-md w-[794px] min-h-[420px] m-auto p-16 mb-9 overflow-hidden '>
+        <div ref={quillRef} className='quill-page ' />
       </div>
     </div>
   );
 };
+
 export default QuillPage; 
