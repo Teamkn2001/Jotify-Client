@@ -23,52 +23,42 @@ const EditorPage = () => {
   const [title, setTitle] = useState({ title: '' });
   const [pages, setPages] = useState(['']);
   const [focusNewPage, setFocusNewPage] = useState(false);
+
   const [activePageNumber, setActivePageNumber] = useState(0);
   const [activeQuill, setActiveQuill] = useState(null)
-  
-  // --------------------------Debug !!--------------------------------------------
-  const debugRef = useRef({
-    lastAction: '',
-    lastPage: null
-  });
-  //  -----------`-----------------Debug !!--------------------------------------------
+
   // Keep track of all quill instances
-  const [quillInstances, setQuillInstances] = useState({}); // key: pageNumber, value: quillInstance
-  greenLog('quillInstances =====', quillInstances);
-  greenLog('quillInstances =====', activePageNumber);
+  const quillInstancesRef = useRef({});  // Use ref instead of state for quillInstances
 
   const registerQuill = (pageNumber, quillInstance) => {
-    console.log("🎇 =======",pageNumber, quillInstance);
-    setQuillInstances(prev => ({
-      ...prev,
-      [pageNumber]: quillInstance
-    }));
+    console.log("📝 Registering quill for page", pageNumber);
+    quillInstancesRef.current[pageNumber] = quillInstance;
   };
 
   const handlePageActive = (pageNumber) => {
-    console.log("🍕🍕🍕🍕", pageNumber , quillInstances[pageNumber])
+    console.log("🎯 Setting active page:", pageNumber);
+    console.log("🎯 Available quills:", quillInstancesRef.current);
     setActivePageNumber(pageNumber);
-    setActiveQuill(quillInstances[pageNumber]); 
+    setActiveQuill(quillInstancesRef.current[pageNumber]);
   };
 
- // this function is toolbar function
+  // this function is toolbar function
   const handleToolbarAction = (action, value) => {
-    console.log("%c this function run in toolbar handler including",'background-color: pink' ,action, value)
-    const currentQuill = quillInstances[activePageNumber];
-    console.log("%c currentQuill ===", 'background-color: pink', currentQuill)
+    console.log("🔧 Toolbar action:", action, value);
+    console.log("🔧 Active quill:", quillInstancesRef.current[activePageNumber]);
+    
+    const currentQuill = quillInstancesRef.current[activePageNumber];
     if (!currentQuill) {
       toast.warning('Please select a page first');
       return;
     }
-    // Ensure the correct editor has focus
+  
     currentQuill.focus();
-    // Get current selection
     const range = currentQuill.getSelection();
     if (!range) {
-      // If no selection, select the start of the editor
       currentQuill.setSelection(0, 0);
     }
-    // Apply the format
+  
     if (value !== undefined) {
       currentQuill.format(action, value);
     } else {
@@ -257,7 +247,6 @@ const EditorPage = () => {
           <h1 className='bg-red-600 mb-3'>user :{socket.id}</h1> :
           <h1>no socket user</h1>
         }
-
         {pages.map((content, pageNumber) => (
           <QuillPage
             key={pageNumber}
@@ -270,7 +259,6 @@ const EditorPage = () => {
             handleContentChange={(height, content) => handleContentChange(pageNumber, height, content)}
             handlePageFull={handlePageFull}
             focusOnMount={focusNewPage && pageNumber === pages.length - 1}
-            debugRef={debugRef}
           />
         ))}
       </div>

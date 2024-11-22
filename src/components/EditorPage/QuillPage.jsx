@@ -38,10 +38,12 @@ const QuillPage = ({
     if (!quill) return;
     // Register quill instance
     onQuillInit(quill);
+
     // Set initial content if provided
     if (initialContent) {
       quill.root.innerHTML = initialContent;
     }
+
     // Focus handling for new pages
     if (focusOnMount) {
       setTimeout(() => {
@@ -50,6 +52,7 @@ const QuillPage = ({
         onActivePage();
       }, 100);
     }
+
     // Monitor Page Active state
     const handleSelection = (range) => {
       console.log("range ====",range)
@@ -57,10 +60,9 @@ const QuillPage = ({
         onActivePage();
       }
     };
-    quill.on('selection-change', handleSelection);
     
     // Handle content changes
-    quill.on('text-change', () => {
+   const handleTextChange = () => {
       const editor = quillRef.current;
       const contentHeight = editor?.clientHeight;
       const contentLength = quill.getText().length;
@@ -72,6 +74,7 @@ const QuillPage = ({
 
         const contents = quill.getContents(0, selection.index);
         const remainingContents = quill.getContents(selection.index);
+        console.log("🌸🌸🌸🌸 🤚 ",contents, remainingContents)
 
         const tempContainer = document.createElement('div');
         const tempQuill = new Quill(tempContainer);
@@ -82,10 +85,14 @@ const QuillPage = ({
         handlePageFull(pageNumber, quill.root.innerHTML, remainingContent);
       }
       handleContentChange(contentHeight, content);
-    });
+    };
 
+    quill.on('selection-change', handleSelection);
+    quill.on('text-change', handleTextChange);
+    
     return () => {
       quill.off('selection-change', handleSelection);
+      quill.off('text-change', handleTextChange);
     };
   }, [quill]);
 
