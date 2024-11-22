@@ -45,7 +45,6 @@ const QuillPage = ({
     // Get toolbar module
     const toolbar = quill.getModule('toolbar');
 
-    // Custom handlers
     toolbar.addHandler('bold', function () {
       const format = quill.getFormat();
       quill.format('bold', !format.bold);
@@ -56,6 +55,87 @@ const QuillPage = ({
       quill.format('italic', !format.italic);
     });
 
+    toolbar.addHandler('underline', function () {
+      const format = quill.getFormat();
+      quill.format('underline', !format.underline);
+    });
+
+    toolbar.addHandler('strike', function () {
+      const format = quill.getFormat();
+      quill.format('strike', !format.strike);
+    });
+
+    toolbar.addHandler('header', function (value) {
+      quill.format('header', value);
+    });
+
+    toolbar.addHandler('list', function (value) {
+      const format = quill.getFormat();
+      quill.format('list', format.list === value ? false : value);
+    });
+
+    toolbar.addHandler('align', function (value) {
+      quill.format('align', value);
+    });
+
+    toolbar.addHandler('link', function (value) {
+      if (value) {
+        const href = prompt('Enter the URL');
+        if (href) {
+          const range = quill.getSelection();
+          quill.format('link', href);
+        }
+      } else {
+        quill.format('link', false);
+      }
+    });
+
+    toolbar.addHandler('clean', function () {
+      const range = quill.getSelection();
+      if (range) {
+        Object.keys(quill.getFormat(range)).forEach(format => {
+          quill.format(format, false);
+        });
+      }
+    });
+
+    toolbar.addHandler('image',  function () {
+        const currentQuill = quillInstancesRef.current[activePageNumber];
+        if (!currentQuill) {
+          toast.warning('Please select a page first');
+          return;
+        }
+  
+        const input = document.createElement('input');
+        input.setAttribute('type', 'file');
+        input.setAttribute('accept', 'image/*');
+        input.click();
+  
+        input.onchange = () => {
+          const file = input.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const img = new Image();
+              img.src = e.target.result;
+              img.onload = () => {
+                if (img.height > PAGE_HEIGHT) {
+                  toast.error('Image too large');
+                  return;
+                }
+                const range = currentQuill.getSelection(true);
+                currentQuill.insertEmbed(
+                  range ? range.index : 0,
+                  'image',
+                  e.target.result
+                );
+              };
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+      }
+    );
 
     // Set initial content if provided
     if (initialContent) {

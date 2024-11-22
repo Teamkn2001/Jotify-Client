@@ -82,57 +82,6 @@ const EditorPage = () => {
   const modules = {
     toolbar: {
       container: '#toolbar',
-      handlers: {
-        // Generic handler for all toolbar actions except image
-        bold: function () { handleToolbarAction('bold'); },
-        italic: function () { handleToolbarAction('italic'); },
-        underline: function () { handleToolbarAction('underline'); },
-        strike: function () { handleToolbarAction('strike'); },
-        header: function (value) { handleToolbarAction('header', value); },
-        list: function (value) { handleToolbarAction('list', value); },
-        align: function (value) { handleToolbarAction('align', value); },
-        link: function (value) { handleToolbarAction('link', value); },
-        clean: function () { handleToolbarAction('clean'); },
-        // Handle image separately as it needs more complex logic
-        image: function () {
-          const currentQuill = quillInstancesRef.current[activePageNumber];
-          if (!currentQuill) {
-            toast.warning('Please select a page first');
-            return;
-          }
-
-          currentQuill.focus();
-
-          const input = document.createElement('input');
-          input.setAttribute('type', 'file');
-          input.setAttribute('accept', 'image/*');
-          input.click();
-
-          input.onchange = () => {
-            const file = input.files[0];
-            if (file) {
-              const reader = new FileReader();
-              reader.onload = (e) => {
-                const img = new Image();
-                img.src = e.target.result;
-                img.onload = () => {
-                  if (img.height > PAGE_HEIGHT) {
-                    toast.error('Image too large');
-                    return;
-                  }
-                  const range = currentQuill.getSelection(true);
-                  currentQuill.insertEmbed(
-                    range ? range.index : 0,
-                    'image',
-                    e.target.result
-                  );
-                };
-              };
-              reader.readAsDataURL(file);
-            }
-          };
-        }
-      }
     },
     imageResize: {
       parchment: Quill.import('parchment'),
