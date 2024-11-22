@@ -8,7 +8,14 @@ import io from 'socket.io-client';
 import QuillToolbarMenu from '../components/QuillToolbarMenu';
 import leaves from '../../src/assets/leaves.svg'
 import QuillPage from '../components/EditorPage/QuillPage'
-import greenLog from '../services/greenLog';
+import ImageResize from 'quill-image-resize-module-react';
+import Quill from 'quill';
+
+// set up size of page
+const PAGE_HEIGHT = 300;
+const MAX_CONTENT_LENGTH = 10000; // Maximum characters per page fix later!!!!!!!!
+
+Quill.register('modules/imageResize', ImageResize);
 
 const EditorPage = () => {
   const { docId } = useParams();
@@ -42,10 +49,12 @@ const EditorPage = () => {
     setActiveQuill(quillInstancesRef.current[pageNumber]);
   };
 
+  
   // this function is toolbar function
   const handleToolbarAction = (action, value) => {
     console.log("🔧 Toolbar action:", action, value);
-    console.log("🔧 Active quill:", quillInstancesRef.current[activePageNumber]);
+    console.log('🌐🌐🌐 Editor page run active', activePageNumber, activePageNumber)
+    console.log("🔧 Active quill (AKA currentQuill):", quillInstancesRef.current[activePageNumber]);
     
     const currentQuill = quillInstancesRef.current[activePageNumber];
     if (!currentQuill) {
@@ -55,6 +64,7 @@ const EditorPage = () => {
   
     currentQuill.focus();
     const range = currentQuill.getSelection();
+    console.log("🔧 Toolbar range:", range);
     if (!range) {
       currentQuill.setSelection(0, 0);
     }
@@ -63,8 +73,10 @@ const EditorPage = () => {
       currentQuill.format(action, value);
     } else {
       const format = currentQuill.getFormat();
+      console.log("🔧 Toolbar else format:", format);
       currentQuill.format(action, !format[action]);
     }
+    console.log("-----------------🔧 Toolbar toolbar ended----------------");
   };
 
   const modules = {
@@ -83,7 +95,7 @@ const EditorPage = () => {
         clean: function () { handleToolbarAction('clean'); },
         // Handle image separately as it needs more complex logic
         image: function () {
-          const currentQuill = quillInstances[activePageNumber];
+          const currentQuill = quillInstancesRef.current[activePageNumber];
           if (!currentQuill) {
             toast.warning('Please select a page first');
             return;
@@ -121,10 +133,15 @@ const EditorPage = () => {
           };
         }
       }
-    }
+    },
+    imageResize: {
+      parchment: Quill.import('parchment'),
+      modules: ['Resize', 'DisplaySize'],
+      displaySize: true
+    }, 
   };
 
-  // console.log('%c All page content', 'background-color: yellow', pages);
+  console.log('%c All page content', 'background-color: yellow', pages);
 
   const handleContentChange = (pageNumber, contentHeight, content) => {
     setPages(prev => {
