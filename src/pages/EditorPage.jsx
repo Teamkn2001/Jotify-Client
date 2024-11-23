@@ -19,6 +19,7 @@ Quill.register('modules/imageResize', ImageResize);
 
 const EditorPage = () => {
   const { docId } = useParams();
+  console.log('docId =', docId)
   const documentId = useUserStore(pull => pull.currentDocumentId);
   const updateDoc = useUserStore(pull => pull.updateDoc);
   const updateTitle = useUserStore(pull => pull.updateTitle);
@@ -34,6 +35,7 @@ const EditorPage = () => {
   const [activePageNumber, setActivePageNumber] = useState(0);
   const [activeQuill, setActiveQuill] = useState(null)
 
+  console.log("🤣", user)
   // Keep track of all quill instances
   const quillInstancesRef = useRef({});  // Use ref instead of state for quillInstances
 
@@ -49,36 +51,6 @@ const EditorPage = () => {
     setActiveQuill(quillInstancesRef.current[pageNumber]);
   };
 
-  
-  // this function is toolbar function
-  const handleToolbarAction = (action, value) => {
-    console.log("🔧 Toolbar action:", action, value);
-    console.log('🌐🌐🌐 Editor page run active', activePageNumber, activePageNumber)
-    console.log("🔧 Active quill (AKA currentQuill):", quillInstancesRef.current[activePageNumber]);
-    
-    const currentQuill = quillInstancesRef.current[activePageNumber];
-    if (!currentQuill) {
-      toast.warning('Please select a page first');
-      return;
-    }
-  
-    currentQuill.focus();
-    const range = currentQuill.getSelection();
-    console.log("🔧 Toolbar range:", range);
-    if (!range) {
-      currentQuill.setSelection(0, 0);
-    }
-  
-    if (value !== undefined) {
-      currentQuill.format(action, value);
-    } else {
-      const format = currentQuill.getFormat();
-      console.log("🔧 Toolbar else format:", format);
-      currentQuill.format(action, !format[action]);
-    }
-    console.log("-----------------🔧 Toolbar toolbar ended----------------");
-  };
-
   const modules = {
     toolbar: {
       container: '#toolbar',
@@ -89,7 +61,6 @@ const EditorPage = () => {
       displaySize: true
     }, 
   };
-
   console.log('%c All page content', 'background-color: yellow', pages);
 
   const handleContentChange = (pageNumber, contentHeight, content) => {

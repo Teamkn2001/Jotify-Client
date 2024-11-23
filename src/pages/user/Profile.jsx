@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { AvatarIcon01 } from '../../icons'
 import ResetPassword from '../../components/ResetPassword'
 import useUserStore from '../../stores/userStore'
@@ -15,7 +15,7 @@ export default function Profile() {
         username: user.username,
         profileImage: ''
     })
-    console.log("data",data)
+    console.log("data", data)
 
     // change after upload img
     const [previewImage, setPreviewImage] = useState(null)
@@ -23,17 +23,13 @@ export default function Profile() {
 
     const hdlSubmit = async e => {
         e.preventDefault()
+        console.log('😀😀😀 submit exe' )
 
         const body = new FormData();
         body.append('username', data.username)
         if (data.profileImage) {
             body.append('image', data.profileImage)
         }
-  
-        // Log FormData entries for further verification
-        // for (let key of body.entries()) {
-        //     console.log(key[0] + ':', key[1]);
-        // }
 
         try {
             await editProfile(user.id, body, token)
@@ -42,12 +38,17 @@ export default function Profile() {
             const errMsg = err?.response?.data?.msg || err.message
             toast.error(errMsg)
         }
-        
     }
 
     // prepare name change
     const hdlNameChange = e => {
         setData(prev => ({ ...prev, username: e.target.value }))
+    }
+
+    const hiddenInputButton = useRef(null)
+    const hdlClickChangeProfile = e => {
+
+        hiddenInputButton.current.click()
     }
 
     const hdlImageChange = e => {
@@ -70,17 +71,28 @@ export default function Profile() {
             <form
                 onSubmit={hdlSubmit}
                 className="flex w-3/5 h-auto m-auto mt-10 flex-col p-[5%] items-center justify-center bg-yellow-200 rounded-2xl gap-4">
+
                 <div className="flex flex-col items-center">
                     <p className='font-bold'>Profiles</p>
                     {/* wht it not rounded???? !!!!!!!!!!!!!!!*/}
-                    {previewImage ? <Avatar imgSrc={previewImage}  className='flex justify-center origin-center  w-[200px] h-[200px] rounded-full overflow-hidden'/> : <Avatar imgSrc={user.profileImage} className='flex justify-center origin-center  w-[200px] h-[200px]   rounded-full overflow-hidden'/>}
-                    {/* <Avatar imgSrc={user.profileImage} />
-                    <Avatar imgSrc={previewImage} /> */}
+                    {previewImage ? <Avatar imgSrc={previewImage} className='flex justify-center origin-center  w-[200px] h-[200px] rounded-full overflow-hidden' /> : <Avatar imgSrc={user.profileImage} className='flex justify-center origin-center  w-[200px] h-[200px]   rounded-full overflow-hidden' />}
+                    <button
+                        className='btn'
+                        type='button'
+                        onClick={hdlClickChangeProfile}
+                    >
+                        change picture
+                    </button>
 
-                    <input type="file" placeholder='change picture?' accept="image/*"
-                        onChange={hdlImageChange} />
+                    <input
+                        type="file"
+                        ref={hiddenInputButton}
+                        placeholder='change picture?'
+                        accept="image/*"
+                        onChange={hdlImageChange}
+                        className='hidden'
+                    />
                 </div>
-
 
                 <div className="flex flex-col">
                     <p className='font-bold'>Username</p>

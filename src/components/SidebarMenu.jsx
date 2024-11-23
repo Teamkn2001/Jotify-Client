@@ -62,7 +62,7 @@ export default function SidebarMenu() {
                 <div
                     //  to={'/document'}
                     onClick={() => hdlCreateDoc()}
-                    className="flex flex-col items-center">
+                    className="flex flex-col items-center cursor-pointer">
                     <FilePlus2 size={60}/>
                     <p>New Document</p>
                 </div>
