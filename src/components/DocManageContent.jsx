@@ -24,7 +24,6 @@ export default function DocManageContent() {
     // console.log(currentDocumentId)
 
     const [searchTitle, setSearchTitle] = useState('')
-    // console.log(searchTitle)
 
     useEffect(() => {
         if (searchTitle) {
@@ -38,7 +37,7 @@ export default function DocManageContent() {
         e.stopPropagation()
         // console.log(docId)
         await setCurrentDoc(docId)
-        navigate(`/document/${docId}${uuidV4()}`)
+        navigate(`/document/${docId}/${uuidV4()}`)
     }
 
     const hdlDeleteDoc = async (e, documentId) => {

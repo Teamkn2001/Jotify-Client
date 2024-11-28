@@ -27,9 +27,8 @@ export default function RollBack({ token, documentId, documentDetail, setContent
     //         // await saveBackupVersion(documentId, body, token)
     //         // await getVersionDoc(documentId, token)
     //       }
-   
     }
-
+ 
     useEffect(() => {
         const allVersion = getVersionDoc(documentId, token)
     }, [])
@@ -74,7 +73,7 @@ export default function RollBack({ token, documentId, documentDetail, setContent
                             <h1>Open Document Version</h1>
                         </div>
                         <div className='flex gap-2'>
-                            <span>{documentDetail.title}</span>
+                            <span>XXX title here najah</span>
                            {versionDetail?.versionNumber ? <p>{versionDetail.versionNumber}</p> : <p> art of blank space</p>}
                         </div>
                         <div className='flex gap-10'>

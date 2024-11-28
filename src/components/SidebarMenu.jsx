@@ -30,20 +30,9 @@ export default function SidebarMenu() {
         setIsReady(true)
     }
 
-    console.log(isReady)
     useEffect(() => {
         if (isReady) {
-
-            const body = {
-                userId: user.id,
-                documentId: documentId
-            }
-        
-            console.log("body",body)
-    
-            addOwnerPermission(body, token)
-
-            navigate(`/document/${documentId}${uuidV4()}`)
+            navigate(`/document/${documentId}/${uuidV4()}`)
         }
     }, [isReady])
     

@@ -31,20 +31,19 @@ const QuillPage = ({
     modules,
     theme: 'snow',
     preserveWhitespace: true,
-  });
-
+  }); 
+  
 
   useEffect(() => {
     console.log('📄 Quillpage Component run at ', pageNumber)
     console.log('🌈🌈🌈🌈', quill)
-    if (!quill) return;
+    if (!quill) return; 
 
     // Register quill instance
     onQuillInit(quill);
 
     // Get toolbar module
     const toolbar = quill.getModule('toolbar');
-
     toolbar.addHandler('bold', function () {
       const format = quill.getFormat();
       quill.format('bold', !format.bold);
@@ -153,7 +152,8 @@ const QuillPage = ({
     }
 
     // Monitor Page Active state
-    const handleSelection = (range) => {
+    const handleSelection = (range, oldRange, source) => {
+      if (source !== 'user') return;
       console.log("%c range ====", 'background-color: pink', range)
       if (range) {
         onActivePage();
@@ -161,7 +161,9 @@ const QuillPage = ({
     };
 
     // Handle content changes
-    const handleTextChange = () => {
+    const handleTextChange = (delta, oldDelta, source) => {
+      if (source !== 'user') return;
+
       const editor = quillRef.current;
       const contentHeight = editor?.clientHeight;
       console.log('current quill height =', contentHeight)

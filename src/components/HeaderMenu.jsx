@@ -3,8 +3,11 @@ import { Link } from 'react-router-dom'
 import Avatar from './Avatar'
 import Permission from './Permission'
 import { History, LogOut, Users } from 'lucide-react'
+import RollBack from './RollBack'
 
-export default function HeaderMenu({title, hdlTitleChange, hdlSave, clearCurrentDoc, user}) {
+export default function HeaderMenu({title, hdlTitleChange, hdlSave, clearCurrentDoc, user, documentId, token, findContentByDocumentId, setContent}) {
+
+  console.log('title at header ========', title)
   return (
    <>
     <div className="flex justify-between items-center px-9 h-20 ">
@@ -16,7 +19,7 @@ export default function HeaderMenu({title, hdlTitleChange, hdlSave, clearCurrent
             <div>
               <input
                 name='title'
-                value={title.title}
+                value={title}
                 onChange={hdlTitleChange}
                 className='bg-none border-none' />
             </div>
@@ -51,14 +54,14 @@ export default function HeaderMenu({title, hdlTitleChange, hdlSave, clearCurrent
           </div>
 
           <dialog id='permission-setting' className='modal'>
-            {/* <Permission documentId={documentId} /> */}
+            <Permission documentId={documentId} />
           </dialog>
 
           <div onClick={() => document.getElementById('rollback-setting').showModal()}>
           <History />
           </div>
           <dialog id='rollback-setting' className='modal'>
-            {/* <RollBack token={token} documentId={documentId} documentDetail={findContentByDocumentId} setContent={setContent} /> */}
+            <RollBack token={token} documentId={documentId} documentDetail={findContentByDocumentId} setContent={setContent} />
           </dialog>
 
           <div

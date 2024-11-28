@@ -6,12 +6,12 @@ import ResetPassword from "../components/ResetPassword";
 const useUserStore = create(
   persist(
     (set) => ({
-      documents: [],   
+      documents: [],
       user: null,
       token: "",
       currentDocumentId: "",
-      savedVersions : null ,
-      userPermissions : null ,
+      savedVersions: null,
+      userPermissions: null,
       register: async (body) => {
         const rs = await axios.post(
           "http://localhost:8200/auth/register",
@@ -54,7 +54,7 @@ const useUserStore = create(
       editProfile: async (userId, body, token) => {
         console.log("in store data = ", userId, body, token);
         for (let key of body.entries()) {
-            console.log(key[0] + ':', key[1]);
+          console.log(key[0] + ":", key[1]);
         }
         const rs = await axios.patch(
           `http://localhost:8200/user/profile/editProfile/${userId}`,
@@ -85,8 +85,8 @@ const useUserStore = create(
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        set(()=>({ currentDocumentId: rs.data.pageData.id }));
-        console.log("1",rs.data)
+        set(() => ({ currentDocumentId: rs.data.pageData.id }));
+        console.log("1", rs.data);
         // return rs.data
       },
       updateDoc: async (documentId, body, token) => {
@@ -100,65 +100,88 @@ const useUserStore = create(
         );
       },
       updateTitle: async (documentId, title, token) => {
-        console.log("ping pong ~ saved")
+        console.log("ping pong ~ saved", title);
+        const body = { title: title };
         const rs = await axios.patch(
           `http://localhost:8200/user/document/updateTitle/${documentId}`,
-          title,
+          body,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
       },
       deleteDoc: async (documentId, token) => {
-        console.log("delete exe in store")
-        console.log("exe in store",documentId, token);
+        console.log("delete exe in store");
+        console.log("exe in store", documentId, token);
         const rs = await axios.delete(
-          `http://localhost:8200/user/document/deleteDocument/${documentId}`,{
+          `http://localhost:8200/user/document/deleteDocument/${documentId}`,
+          {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
       },
       // -------------Permission part ------------------
-      addOwnerPermission : async ( body, token) => {
-        const rs = await axios.post(`http://localhost:8200/user/document/addOwnerPermission`, body , {
-          headers: { Authorization: `Bearer ${token}` },
-        } )
+      addOwnerPermission: async (body, token) => {
+        const rs = await axios.post(
+          `http://localhost:8200/user/document/addOwnerPermission`,
+          body,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
       },
-      givePermission : async ( documentId, permissionInfo, token ) => {
-        const rs = await axios.post(`http://localhost:8200/user/document/givePermission/${documentId}`, permissionInfo, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+      givePermission: async (documentId, permissionInfo, token) => {
+        const rs = await axios.post(
+          `http://localhost:8200/user/document/givePermission/${documentId}`,
+          permissionInfo,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
       },
-      getAllUserPermission : async ( documentId , token) => {
-        const rs = await axios.get(`http://localhost:8200/user/document/getAllUserPermission/${documentId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        set({userPermissions : rs.data.getAllUserPermission })
+      getAllUserPermission: async (documentId, token) => {
+        const rs = await axios.get(
+          `http://localhost:8200/user/document/getAllUserPermission/${documentId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        set({ userPermissions: rs.data.getAllUserPermission });
       },
-      deletePermission : async (permissionId , token) => {
-        console.log("permissionId in store", permissionId)
-        const rs = await axios.delete(`http://localhost:8200/user/document/deletePermission/${permissionId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+      deletePermission: async (permissionId, token) => {
+        console.log("permissionId in store", permissionId);
+        const rs = await axios.delete(
+          `http://localhost:8200/user/document/deletePermission/${permissionId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
       },
 
       // -------------comment part ----------------------
 
       // -------------version part ----------------------
-      saveBackupVersion : async ( documentId, body, token) => {
-        console.log("backup",  documentId, body, token)
-        const rs = await axios.post(`http://localhost:8200/user//document/saveBackupVersion/${documentId}`, body , {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+      saveBackupVersion: async (documentId, body, token) => {
+        console.log("backup", documentId, body, token);
+        const rs = await axios.post(
+          `http://localhost:8200/user/document/saveBackupVersion/${documentId}`,
+          body,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
       },
-      getVersionDoc : async (documentId, token) => {
-        const rs = await axios.get(`http://localhost:8200/user/document/getVersionDoc/${documentId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+      getVersionDoc: async (documentId, token) => {
+        const rs = await axios.get(
+          `http://localhost:8200/user/document/getVersionDoc/${documentId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         // console.log(rs.data.saveBackup)
-        set( {savedVersions : rs.data.saveBackup})
-      }
-
+        return rs.data;
+        // set( {savedVersions : rs.data.saveBackup})
+      },
     }),
     {
       name: "store",

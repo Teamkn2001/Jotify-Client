@@ -22,7 +22,7 @@ const guessRouter = createBrowserRouter([
 const userRouter = createBrowserRouter([
     { path: '/', element: <DocumentLayout /> },
     { path: 'profile', element: <Profile /> },
-    { path: 'document/:docId', element: <EditorPage /> }
+    { path: 'document/:docId/:uuid', element: <EditorPage /> }
 
 ])
 

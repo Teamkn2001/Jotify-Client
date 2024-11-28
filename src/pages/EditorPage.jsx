@@ -5,11 +5,12 @@ import 'quill/dist/quill.snow.css';
 import useUserStore from '../stores/userStore';
 import HeaderMenu from '../components/HeaderMenu';
 import io from 'socket.io-client';
-import QuillToolbarMenu from '../components/QuillToolbarMenu';
 import leaves from '../../src/assets/leaves.svg'
 import QuillPage from '../components/EditorPage/QuillPage'
 import ImageResize from 'quill-image-resize-module-react';
 import Quill from 'quill';
+import Toolbar from '../components/EditorPage/Toolbar';
+import useDocumentStore from '../stores/documentStore';
 
 // set up size of page
 const PAGE_HEIGHT = 300;
@@ -19,23 +20,27 @@ Quill.register('modules/imageResize', ImageResize);
 
 const EditorPage = () => {
   const { docId } = useParams();
-  console.log('docId =', docId)
-  const documentId = useUserStore(pull => pull.currentDocumentId);
+  const documentId = docId 
+// --------------------------useDocumentStore-------------------
+  const getDocument = useDocumentStore(pull => pull.getDoc);
+  //------------------------- useUserStore-----------------------
   const updateDoc = useUserStore(pull => pull.updateDoc);
   const updateTitle = useUserStore(pull => pull.updateTitle);
-  const clearCurrentDoc = useUserStore(pull => pull.clearCurrentDoc);
+  const clearCurrentDoc = useUserStore(pull => pull.clearCurrentDoc);// logout
+  // user info
   const user = useUserStore(pull => pull.user);
   const token = useUserStore(pull => pull.token);
-  const [socket, setSocket] = useState(null);
+// ----------------------------------------------------------
+  const [ leading , setLoading] = useState(true)
 
-  const [title, setTitle] = useState({ title: '' });
+  const [socket, setSocket] = useState(null);
+  const [title, setTitle] = useState('');
   const [pages, setPages] = useState(['']);
   const [focusNewPage, setFocusNewPage] = useState(false);
 
   const [activePageNumber, setActivePageNumber] = useState(0);
   const [activeQuill, setActiveQuill] = useState(null)
 
-  console.log("🤣", user)
   // Keep track of all quill instances
   const quillInstancesRef = useRef({});  // Use ref instead of state for quillInstances
 
@@ -59,9 +64,9 @@ const EditorPage = () => {
       parchment: Quill.import('parchment'),
       modules: ['Resize', 'DisplaySize'],
       displaySize: true
-    }, 
+    },
   };
-  console.log('%c All page content', 'background-color: yellow', pages);
+  // console.log('%c All page content', 'background-color: yellow', pages);
 
   const handleContentChange = (pageNumber, contentHeight, content) => {
     setPages(prev => {
@@ -101,33 +106,61 @@ const EditorPage = () => {
 
   const hdlTitleChange = e => {
     const newValue = e.target.value;
-    setTitle(prev => ({ ...prev, [e.target.name]: newValue }));
+    setTitle(newValue);
   };
 
   useEffect(() => {
     let intervalAxios = setTimeout(() => {
-      if (title.title.trim()) {
+      console.log('mwanshile in useff title ==', title)
+      if (title) {
         updateTitle(documentId, title, token);
       }
     }, 2000);
 
     return () => clearTimeout(intervalAxios);
-  }, [title.title]);
+  }, [title]);
+  console.log("title ==========", title)
 
-  useEffect(() => {
-    const enterSocket = io('http://localhost:8200');
-    setSocket(enterSocket);
+  // useEffect(() => {
+  //   const enterSocket = io('http://localhost:8200');
+  //   setSocket(enterSocket);
 
-    enterSocket.on('connect', () => {
-      toast.success("user connect with id =" + enterSocket.id);
-      return () => enterSocket.disconnect();
-    });
-  }, []);
+  //   enterSocket.on('connect', () => {
+  //     toast.success("user connect with id =" + enterSocket.id);
+  //     return () => enterSocket.disconnect();
+  //   });
+  // }, []);
+
+  useEffect( () => {
+    console.log("first------------------------------")
+    const loadDocument = async () => {
+      try {
+        console.log("second------------------------------")
+        setLoading(true)
+        const data = await getDocument(docId, token)
+        console.log("🥑🥑🥑🥑",data.getDocumentContent.title)
+        console.log("🥑🥑🥑🥑",data.getDocumentContent.content)
+
+        setTitle(data.getDocumentContent.title)
+        // setPages
+      } catch (error) {
+        toast.error(error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (docId) {
+      loadDocument();
+    }
+
+  }, [docId]) 
 
   useEffect(() => {
     if (socket == null) return;
     socket.emit("get-docId", docId);
   }, [socket, docId]);
+  
   // not use now
   const hdlSave = async () => {
     toast.success("saved");
@@ -137,46 +170,15 @@ const EditorPage = () => {
     <div className='flex flex-col bg-[#f8d7b1]'>
       <div className='flex flex-col sticky top-0 z-10 bg-[#FFB25B]'>
         <HeaderMenu
+          documentId={documentId}
+          token={token}
           title={title}
           hdlTitleChange={hdlTitleChange}
           hdlSave={hdlSave}
           clearCurrentDoc={clearCurrentDoc}
           user={user}
         />
-
-        <div id='toolbar' className='w-full bg-[#fcc280]'>
-          <span className="ql-formats">
-            <select className="ql-header">
-              <option value="1">Heading 1</option>
-              <option value="2">Heading 2</option>
-              <option value="3">Heading 3</option>
-              <option value="4">Heading 4</option>
-              <option value="5">Heading 5</option>
-              <option value="6">Heading 6</option>
-              <option value="">Normal</option>
-            </select>
-          </span>
-          <span className="ql-formats">
-            <button className="ql-bold" />
-            <button className="ql-italic" />
-            <button className="ql-underline" />
-            <button className="ql-strike" />
-          </span>
-          <span className="ql-formats">
-            <button className="ql-list" value="ordered" />
-            <button className="ql-list" value="bullet" />
-          </span>
-          <span className="ql-formats">
-            <select className="ql-align" />
-          </span>
-          <span className="ql-formats">
-            <button className="ql-link" />
-            <button className="ql-image" />
-          </span>
-          <span className="ql-formats">
-            <button className="ql-clean" />
-          </span>
-        </div>
+     <Toolbar />
       </div>
 
       <div className='relative'>
