@@ -7,17 +7,17 @@ export default function RollBack({ token, documentId, documentDetail, setContent
     const savedVersions = useUserStore(pull => pull.savedVersions)
     const updateDoc = useUserStore( pull => pull.updateDoc)
 
-    console.log("savedVersions =",savedVersions)
+    // console.log("savedVersions =",savedVersions)
     const [versionDetail, setVersionDetail] = useState(null)
     const hdlCollectIdVersion = (version) => {
         setVersionDetail(version)
-        console.log(version)
+        // console.log(version)
     }
 
-    console.log("versionIdCollected =", versionDetail)
+    // console.log("versionIdCollected =", versionDetail)
 
     const  hdlRollback = async () => {
-        console.log("prepare rollback data =",versionDetail.content)
+        // console.log("prepare rollback data =",versionDetail.content)
        
             const content = versionDetail.content.length === 0 
             ? ['']

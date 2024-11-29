@@ -10,7 +10,7 @@ export default function Permission({ documentId }) {
     const token = useUserStore(pull => pull.token)
     const deletePermission = useUserStore(pull => pull.deletePermission)
 
-    console.log('userPermissions', userPermissions)
+    // console.log('userPermissions', userPermissions)
 
     const [permission, setPermission] = useState({
         identity: '',

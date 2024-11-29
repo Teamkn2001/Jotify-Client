@@ -5,15 +5,15 @@ import Permission from './Permission'
 import { History, LogOut, Users } from 'lucide-react'
 import RollBack from './RollBack'
 
-export default function HeaderMenu({title, hdlTitleChange, hdlSave, clearCurrentDoc, user, documentId, token, findContentByDocumentId, setContent}) {
+export default function HeaderMenu({ title, hdlTitleChange, hdlSave, clearCurrentDoc, user, documentId, token, findContentByDocumentId, setContent }) {
 
   console.log('title at header ========', title)
   return (
-   <>
-    <div className="flex justify-between items-center px-9 h-20 ">
+    <>
+      <div className="flex justify-between items-center px-9 h-20 ">
         <div className='flex gap-10 items-center'>
           <div className='w-12'>
-           <img src="https://res.cloudinary.com/djudr1vzc/image/upload/v1731374480/sunflower-1621990_1920_fiumqr.jpg" alt="" />
+            <img src="https://res.cloudinary.com/djudr1vzc/image/upload/v1731374480/sunflower-1621990_1920_fiumqr.jpg" alt="" />
           </div>
           <div>
             <div>
@@ -34,7 +34,9 @@ export default function HeaderMenu({title, hdlTitleChange, hdlSave, clearCurrent
               <div
                 onClick={() => hdlSave()}
                 className="bg-red-300 cursor-pointer"
-              >set savepoint</div>
+              >set savepoint
+              </div>
+
               <p>feature1</p>
               <p>feature2</p>
               <p>feature3</p>
@@ -44,13 +46,13 @@ export default function HeaderMenu({title, hdlTitleChange, hdlSave, clearCurrent
 
         <div className='flex gap-10 items-center'>
           <Link to={'/'}
-            onClick={() => clearCurrentDoc()}
+            // onClick={() => clearCurrentDoc()}
           >
-           <LogOut /> 
+            <LogOut />
           </Link>
 
           <div onClick={() => document.getElementById('permission-setting').showModal()}>
-          <Users />
+            <Users />
           </div>
 
           <dialog id='permission-setting' className='modal'>
@@ -58,7 +60,7 @@ export default function HeaderMenu({title, hdlTitleChange, hdlSave, clearCurrent
           </dialog>
 
           <div onClick={() => document.getElementById('rollback-setting').showModal()}>
-          <History />
+            <History />
           </div>
           <dialog id='rollback-setting' className='modal'>
             <RollBack token={token} documentId={documentId} documentDetail={findContentByDocumentId} setContent={setContent} />
@@ -85,6 +87,6 @@ export default function HeaderMenu({title, hdlTitleChange, hdlSave, clearCurrent
           </dialog>
         </div>
       </div>
-   </>
+    </>
   )
 }

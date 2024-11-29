@@ -20,8 +20,8 @@ Quill.register('modules/imageResize', ImageResize);
 
 const EditorPage = () => {
   const { docId } = useParams();
-  const documentId = docId 
-// --------------------------useDocumentStore-------------------
+  const documentId = docId
+  // --------------------------useDocumentStore-------------------
   const getDocument = useDocumentStore(pull => pull.getDoc);
   //------------------------- useUserStore-----------------------
   const updateDoc = useUserStore(pull => pull.updateDoc);
@@ -30,8 +30,8 @@ const EditorPage = () => {
   // user info
   const user = useUserStore(pull => pull.user);
   const token = useUserStore(pull => pull.token);
-// ----------------------------------------------------------
-  const [ leading , setLoading] = useState(true)
+  // ----------------------------------------------------------
+  const [leading, setLoading] = useState(true)
 
   const [socket, setSocket] = useState(null);
   const [title, setTitle] = useState('');
@@ -66,7 +66,7 @@ const EditorPage = () => {
       displaySize: true
     },
   };
-  // console.log('%c All page content', 'background-color: yellow', pages);
+  console.log('%c All page content', 'background-color: yellow', pages);
 
   const handleContentChange = (pageNumber, contentHeight, content) => {
     setPages(prev => {
@@ -121,28 +121,43 @@ const EditorPage = () => {
   }, [title]);
   console.log("title ==========", title)
 
-  // useEffect(() => {
-  //   const enterSocket = io('http://localhost:8200');
-  //   setSocket(enterSocket);
+  useEffect(() => {
+    const enterSocket = io('http://localhost:8200');
+    setSocket(enterSocket);
 
-  //   enterSocket.on('connect', () => {
-  //     toast.success("user connect with id =" + enterSocket.id);
-  //     return () => enterSocket.disconnect();
-  //   });
-  // }, []);
+    enterSocket.on('connect', () => {
+      toast.success("user connect with id =" + enterSocket.id);
+      return () => enterSocket.disconnect();
+    });
+  }, []);
 
-  useEffect( () => {
-    console.log("first------------------------------")
+  useEffect(() => {
     const loadDocument = async () => {
       try {
-        console.log("second------------------------------")
         setLoading(true)
         const data = await getDocument(docId, token)
-        console.log("🥑🥑🥑🥑",data.getDocumentContent.title)
-        console.log("🥑🥑🥑🥑",data.getDocumentContent.content)
+        const fetchedTitle = data.getDocumentContent.title
+        const fetchedAllPages = JSON.parse(data.getDocumentContent.content)
 
-        setTitle(data.getDocumentContent.title)
-        // setPages
+        console.log("fetchedTitle ====", fetchedTitle)
+        console.log("fetchedAllPages ====", fetchedAllPages)
+
+      // console.log("Type of fetchedAllPages:", typeof fetchedAllPages)
+      // console.log("Is Array?", Array.isArray(fetchedAllPages))
+      // console.log("Length:", fetchedAllPages?.length)
+
+        setTitle(fetchedTitle)
+
+        fetchedAllPages.map( (page, index) => {
+          console.log(pages)
+          if ( index === 0) {
+            setPages([page])
+          } else {
+            console.log(" 🥰🥰🥰page and index ====" ,index ,page)
+            setPages(prev => [...prev, page])
+          }
+        })
+    
       } catch (error) {
         toast.error(error)
       } finally {
@@ -153,16 +168,16 @@ const EditorPage = () => {
     if (docId) {
       loadDocument();
     }
-
-  }, [docId]) 
+  }, [docId]);
 
   useEffect(() => {
     if (socket == null) return;
     socket.emit("get-docId", docId);
   }, [socket, docId]);
-  
+
   // not use now
   const hdlSave = async () => {
+    updateDoc(documentId, { title, content: pages }, token);
     toast.success("saved");
   };
 
@@ -178,7 +193,7 @@ const EditorPage = () => {
           clearCurrentDoc={clearCurrentDoc}
           user={user}
         />
-     <Toolbar />
+        <Toolbar />
       </div>
 
       <div className='relative'>
