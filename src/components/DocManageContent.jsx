@@ -17,7 +17,6 @@ export default function DocManageContent() {
     console.log(allDocuments)
     const getAllDoc = useUserStore(pull => pull.getAllDoc)
     const getFilteredDoc = useUserStore(pull => pull.getFilteredDoc)
-    const setCurrentDoc = useUserStore(pull => pull.setCurrentDoc)
     const deleteDoc = useUserStore(pull => pull.deleteDoc)
     // okay it set page here
     // const currentDocumentId = useUserStore( pull => pull.currentDocumentId)
@@ -35,8 +34,7 @@ export default function DocManageContent() {
 
     const hdlSetCurrentDoc = async (e, docId) => {
         e.stopPropagation()
-        // console.log(docId)
-        await setCurrentDoc(docId)
+        // console.log(docId
         navigate(`/document/${docId}/${uuidV4()}`)
     }
 

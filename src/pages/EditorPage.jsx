@@ -33,16 +33,21 @@ const EditorPage = () => {
   // ----------------------------------------------------------
   const [leading, setLoading] = useState(true)
 
-  const [socket, setSocket] = useState(null);
   const [title, setTitle] = useState('');
   const [pages, setPages] = useState(['']);
   const [focusNewPage, setFocusNewPage] = useState(false);
-
+  
   const [activePageNumber, setActivePageNumber] = useState(0);
   const [activeQuill, setActiveQuill] = useState(null)
-
+  
   // Keep track of all quill instances
   const quillInstancesRef = useRef({});  // Use ref instead of state for quillInstances
+
+  // socket management
+  const [socket, setSocket] = useState(null);
+  const [lastSavedContent, setLastSavedContent] = useState('');
+  const saveTimeoutRef = useRef(null);
+  const AUTOSAVE_TIMEOUT = 2000;
 
   const registerQuill = (pageNumber, quillInstance) => {
     console.log("📝 Registering quill for page", pageNumber);
@@ -109,28 +114,64 @@ const EditorPage = () => {
     setTitle(newValue);
   };
 
-  useEffect(() => {
-    let intervalAxios = setTimeout(() => {
-      console.log('mwanshile in useff title ==', title)
-      if (title) {
-        updateTitle(documentId, title, token);
-      }
-    }, 2000);
+  // useEffect(() => {
+  //   let intervalAxios = setTimeout(() => {
+  //     console.log('mwanshile in useff title ==', title)
+  //     if (title) {
+  //       updateTitle(documentId, title, token);
+  //     }
+  //   }, 2000);
 
-    return () => clearTimeout(intervalAxios);
-  }, [title]);
-  console.log("title ==========", title)
+  //   return () => clearTimeout(intervalAxios);
+  // }, [title]);
 
+  // Initialize socket connection with error handling
   useEffect(() => {
-    const enterSocket = io('http://localhost:8200');
+    const enterSocket = io('http://localhost:8200', {
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 5,
+    });
     setSocket(enterSocket);
 
     enterSocket.on('connect', () => {
       toast.success("user connect with id =" + enterSocket.id);
-      return () => enterSocket.disconnect();
+      // join room
+      enterSocket.emit('join-document', { docId, userId: user.id });
     });
+
+    enterSocket.on('connect-error', (error) => {
+      toast.error(error, "Retrying nah");
+    })
+
+    enterSocket.on('document-saved', ({ timestamp }) => {
+      toast.success("Document auto saved at " + new Date(timestamp).toLocaleTimeString());
+      setLastSavedContent(JSON.stringify(pages));
+    })
+
+    enterSocket.on('save-error', (error) => {
+      toast.error(`auto save failed: ${error}`)
+    })
+
+    enterSocket.on('document-updated', ({ updatedPage, updatedTitle, updatedBy }) => {
+      if( updatedBy !== user.id) {
+        setPages(updatedPage);
+        setTitle(updatedTitle);
+        toast.info(`Document updated by ${updatedBy}`)
+      }
+    })
+
+    return () => {
+      if( saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      enterSocket.disconnect();
+    }
+
   }, []);
 
+  // load content if user click old document
   useEffect(() => {
     const loadDocument = async () => {
       try {
@@ -170,16 +211,34 @@ const EditorPage = () => {
     }
   }, [docId]);
 
-  useEffect(() => {
-    if (socket == null) return;
-    socket.emit("get-docId", docId);
-  }, [socket, docId]);
-
   // not use now
   const hdlSave = async () => {
     updateDoc(documentId, { title, content: pages }, token);
     toast.success("saved");
   };
+
+  // Autosave content logic
+  useEffect( () => {
+    if( !socket || !pages.length) return;
+
+    const currentContent = JSON.stringify(pages);
+    if( currentContent === lastSavedContent) return;
+
+    if( saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // new Timeout
+    saveTimeoutRef.current = setTimeout(() => {
+      socket.emit('save-document', { docId, content: pages, title, userId: user.id });
+    }, AUTOSAVE_TIMEOUT);
+
+    return () => {
+      if( saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    }
+  }, [pages, title, socket]);
 
   return (
     <div className='flex flex-col bg-[#f8d7b1]'>

@@ -9,7 +9,6 @@ const useUserStore = create(
       documents: [],
       user: null,
       token: "",
-      currentDocumentId: "",
       savedVersions: null,
       userPermissions: null,
       register: async (body) => {
@@ -33,13 +32,7 @@ const useUserStore = create(
         set({ documents: rs.data.allDocuments });
         // console.log(rs.data.allDocuments)
       },
-      // state of doc
-      setCurrentDoc: (doc) => {
-        set({ currentDocumentId: doc });
-      },
-      clearCurrentDoc: () => {
-        set({ currentDocumentId: "" });
-      },
+
       //-----------------user profile part and doc manage----------
       getFilteredDoc: async (userId, searchTitle, token) => {
         // console.log(userId, searchTitle, token)

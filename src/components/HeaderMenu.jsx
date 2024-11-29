@@ -45,9 +45,7 @@ export default function HeaderMenu({ title, hdlTitleChange, hdlSave, clearCurren
         </div>
 
         <div className='flex gap-10 items-center'>
-          <Link to={'/'}
-            // onClick={() => clearCurrentDoc()}
-          >
+          <Link to={'/'}>
             <LogOut />
           </Link>
 
