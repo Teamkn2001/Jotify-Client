@@ -13,8 +13,13 @@ export default function DocManageContent() {
 
     const navigate = useNavigate()
 
-    const allDocuments = useUserStore(pull => pull.documents)
-    console.log(allDocuments)
+    const [allDocuments, setAllDocuments] = useState([])
+    const [mutualDocuments, setMutualDocuments] = useState([])
+
+    // const allDocuments = useUserStore(pull => pull.documents)
+    console.log("allDocuments ==", allDocuments)
+    console.log("allDocuments  type==", typeof allDocuments)
+    console.log("mutualDocuments ==", mutualDocuments)
     const getAllDoc = useUserStore(pull => pull.getAllDoc)
     const getFilteredDoc = useUserStore(pull => pull.getFilteredDoc)
     const deleteDoc = useUserStore(pull => pull.deleteDoc)
@@ -25,12 +30,49 @@ export default function DocManageContent() {
     const [searchTitle, setSearchTitle] = useState('')
 
     useEffect(() => {
-        if (searchTitle) {
-            getFilteredDoc(user.id, searchTitle, token)
-        } else {
-            getAllDoc(user.id, token)
+        // toast.success('fetching data')
+        async function fetchFilteredDoc() {
+            try {
+                const searchOwn = searchTitle
+                    ? await getFilteredDoc(user.id, searchTitle, token)
+                    : await getAllDoc(user.id, token)
+
+                console.log("searchOwn ALL ===", searchOwn)
+                console.log("Raw data:", searchTitle ? searchOwn.allFilteredDocs : searchOwn.allDocuments);
+                setAllDocuments(searchTitle
+                    ? searchOwn.allFilteredDocs
+                    : searchOwn.allDocuments
+                )
+                setMutualDocuments(searchTitle
+                    ? searchOwn.allSharedDocuments
+                    : searchOwn.allSharedDocuments
+                )
+            } catch (error) {
+                toast.error(error)
+            }
+
         }
-    }, [searchTitle])
+
+        fetchFilteredDoc()
+    }, [searchTitle, user.id])
+
+    // Super confused here about the logic
+    // useEffect(() => {
+    //     const fetchAllDoc = async () => {
+    //         try {
+    //             const allDoc = await getAllDoc(user.id, token)
+    //             console.log("😄😄😄😄", allDoc)
+    //             console.log("😄😄😄😄", allDoc.allSharedDocuments)
+
+    //             setAllDocuments(prev => [...prev, ...allDoc.allDocuments])
+
+    //             setMutualDocuments(prev => [...prev, ...allDoc.allSharedDocuments])
+    //         } catch (error) {
+    //             toast.error(error)
+    //         }
+    //     }
+    //     fetchAllDoc()
+    // }, [])
 
     const hdlSetCurrentDoc = async (e, docId) => {
         e.stopPropagation()
@@ -80,7 +122,7 @@ export default function DocManageContent() {
                         </svg>
                     </label>
 
-                    <div className="flex flex-col gap-4 overflow-auto max-h-[75%] hide-scrollbar">
+                    <div className="flex flex-col gap-4 overflow-auto max-h-[50%] hide-scrollbar ">
 
                         {allDocuments.length > 0
                             ? allDocuments.map(el => (
@@ -91,6 +133,23 @@ export default function DocManageContent() {
                                     <p>{el.title}</p>
                                     <button
                                         onClick={(e) => hdlDeleteDoc(e, el.id)}
+                                        className="btn btn-error">del</button>
+                                </div>
+                            ))
+                            : <NoDocument />
+                        }
+                    </div>
+                    <div className="flex flex-col gap-4 overflow-auto max-h-[50%] hide-scrollbar ">
+                        <h1 className='text-xl font-bold'>shared document</h1>
+                        {mutualDocuments.length > 0
+                            ? mutualDocuments.map(el => (
+                                <div
+                                    onClick={(e) => hdlSetCurrentDoc(e, el.document.id)}
+                                    key={el.id}
+                                    className='bg-pink-400 p-4 w-[95%] rounded-xl flex justify-between px-14 cursor-pointer hover:text-2xl hover:w-[97%] '>
+                                    <p>{el.document.title}</p>
+                                    <button
+                                        onClick={(e) => hdlDeleteDoc(e, el.document.id)}
                                         className="btn btn-error">del</button>
                                 </div>
                             ))

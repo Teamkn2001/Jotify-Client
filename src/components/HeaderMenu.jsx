@@ -7,7 +7,7 @@ import RollBack from './RollBack'
 
 export default function HeaderMenu({ title, hdlTitleChange, hdlSave, clearCurrentDoc, user, documentId, token, findContentByDocumentId, setContent }) {
 
-  console.log('title at header ========', title)
+  // console.log('title at header ========', title)
   return (
     <>
       <div className="flex justify-between items-center px-9 h-20 ">
@@ -36,10 +36,6 @@ export default function HeaderMenu({ title, hdlTitleChange, hdlSave, clearCurren
                 className="bg-red-300 cursor-pointer"
               >set savepoint
               </div>
-
-              <p>feature1</p>
-              <p>feature2</p>
-              <p>feature3</p>
             </div>
           </div>
         </div>
@@ -49,7 +45,7 @@ export default function HeaderMenu({ title, hdlTitleChange, hdlSave, clearCurren
             <LogOut />
           </Link>
 
-          <div onClick={() => document.getElementById('permission-setting').showModal()}>
+          <div onClick={() => document.getElementById('permission-setting').showModal()} className='cursor-pointer'>
             <Users />
           </div>
 
@@ -57,7 +53,7 @@ export default function HeaderMenu({ title, hdlTitleChange, hdlSave, clearCurren
             <Permission documentId={documentId} />
           </dialog>
 
-          <div onClick={() => document.getElementById('rollback-setting').showModal()}>
+          <div onClick={() => document.getElementById('rollback-setting').showModal()} className='cursor-pointer'>
             <History />
           </div>
           <dialog id='rollback-setting' className='modal'>

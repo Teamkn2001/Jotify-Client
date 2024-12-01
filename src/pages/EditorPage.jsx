@@ -25,7 +25,6 @@ const EditorPage = () => {
   const getDocument = useDocumentStore(pull => pull.getDoc);
   //------------------------- useUserStore-----------------------
   const updateDoc = useUserStore(pull => pull.updateDoc);
-  const updateTitle = useUserStore(pull => pull.updateTitle);
   const clearCurrentDoc = useUserStore(pull => pull.clearCurrentDoc);// logout
   // user info
   const user = useUserStore(pull => pull.user);
@@ -46,6 +45,7 @@ const EditorPage = () => {
   // socket management
   const [socket, setSocket] = useState(null);
   const [lastSavedContent, setLastSavedContent] = useState('');
+  console.log("lastSavedContent 😈😈😈😈 :", lastSavedContent)
   const saveTimeoutRef = useRef(null);
   const AUTOSAVE_TIMEOUT = 2000;
 
@@ -55,8 +55,8 @@ const EditorPage = () => {
   };
 
   const handlePageActive = (pageNumber) => {
-    console.log("🎯 Setting active page:", pageNumber);
-    console.log("🎯 Available quills:", quillInstancesRef.current);
+    // console.log("🎯 Setting active page:", pageNumber);
+    // console.log("🎯 Available quills:", quillInstancesRef.current);
     setActivePageNumber(pageNumber);
     setActiveQuill(quillInstancesRef.current[pageNumber]);
   };
@@ -75,9 +75,19 @@ const EditorPage = () => {
 
   const handleContentChange = (pageNumber, contentHeight, content) => {
     setPages(prev => {
-      // console.log("%c hdlContentChange", 'background-color: yellow', "pageNumber =", pageNumber, "contentHeight =", contentHeight, "content =", content)
+      console.log("%c hdlContentChange", 'background-color: yellow', "pageNumber =", pageNumber, "contentHeight =", contentHeight, "content =", content)
       const updatedPages = [...prev];
       updatedPages[pageNumber] = content;
+
+      if ( socket ) {
+        socket.emit('content-changed', {
+          docId,
+          updatedPages,
+          title,
+          userId: user.id
+        })
+      }
+
       return updatedPages;
     });
   };
@@ -114,17 +124,6 @@ const EditorPage = () => {
     setTitle(newValue);
   };
 
-  // useEffect(() => {
-  //   let intervalAxios = setTimeout(() => {
-  //     console.log('mwanshile in useff title ==', title)
-  //     if (title) {
-  //       updateTitle(documentId, title, token);
-  //     }
-  //   }, 2000);
-
-  //   return () => clearTimeout(intervalAxios);
-  // }, [title]);
-
   // Initialize socket connection with error handling
   useEffect(() => {
     const enterSocket = io('http://localhost:8200', {
@@ -136,7 +135,6 @@ const EditorPage = () => {
     setSocket(enterSocket);
 
     enterSocket.on('connect', () => {
-      toast.success("user connect with id =" + enterSocket.id);
       // join room
       enterSocket.emit('join-document', { docId, userId: user.id });
     });
@@ -154,11 +152,15 @@ const EditorPage = () => {
       toast.error(`auto save failed: ${error}`)
     })
 
-    enterSocket.on('document-updated', ({ updatedPage, updatedTitle, updatedBy }) => {
+    enterSocket.on('document-updated', ({ updatedPages, updatedTitle, updatedBy }) => {
+      console.log("received update updatedPage, updatedTitle, updatedBy 😁😁😁", updatedPages, updatedTitle, updatedBy)
+      // const parsedUpdatedPages = JSON.parse(updatedPages)
+      // console.log("🤩",typeof parsedUpdatedPages)
       if( updatedBy !== user.id) {
-        setPages(updatedPage);
+        console.log(updatedPages)
+        setPages(updatedPages);
         setTitle(updatedTitle);
-        toast.info(`Document updated by ${updatedBy}`)
+        toast.info(`Document updated by ${updatedBy} : (useEffect initial)`);
       }
     })
 
@@ -177,27 +179,27 @@ const EditorPage = () => {
       try {
         setLoading(true)
         const data = await getDocument(docId, token)
+        console.log(" 1 All getDoc data ===", data.getDocumentContent)
         const fetchedTitle = data.getDocumentContent.title
         const fetchedAllPages = JSON.parse(data.getDocumentContent.content)
 
-        console.log("fetchedTitle ====", fetchedTitle)
-        console.log("fetchedAllPages ====", fetchedAllPages)
-
+        console.log(" 2 fetchedTitle ====", fetchedTitle)
+        console.log(" 3 fetchedAllPages ====", fetchedAllPages)
       // console.log("Type of fetchedAllPages:", typeof fetchedAllPages)
       // console.log("Is Array?", Array.isArray(fetchedAllPages))
       // console.log("Length:", fetchedAllPages?.length)
-
         setTitle(fetchedTitle)
+        setPages(fetchedAllPages)
 
-        fetchedAllPages.map( (page, index) => {
-          console.log(pages)
-          if ( index === 0) {
-            setPages([page])
-          } else {
-            console.log(" 🥰🥰🥰page and index ====" ,index ,page)
-            setPages(prev => [...prev, page])
-          }
-        })
+        // fetchedAllPages.map( (page, index) => {
+        //   console.log(pages)
+        //   if ( index === 0) {
+        //     setPages([page])
+        //   } else {
+        //     console.log(" 🥰🥰🥰page and index ====" ,index ,page)
+        //     setPages(prev => [...prev, page])
+        //   }
+        // })
     
       } catch (error) {
         toast.error(error)
@@ -211,7 +213,7 @@ const EditorPage = () => {
     }
   }, [docId]);
 
-  // not use now
+  // not use now (test save only)
   const hdlSave = async () => {
     updateDoc(documentId, { title, content: pages }, token);
     toast.success("saved");
@@ -231,6 +233,8 @@ const EditorPage = () => {
     // new Timeout
     saveTimeoutRef.current = setTimeout(() => {
       socket.emit('save-document', { docId, content: pages, title, userId: user.id });
+
+      setLastSavedContent(currentContent);
     }, AUTOSAVE_TIMEOUT);
 
     return () => {

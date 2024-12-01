@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import useUserStore from '../stores/userStore'
 import { toast } from 'react-toastify'
+import { UserRoundX } from 'lucide-react'
 
 export default function Permission({ documentId }) {
 
@@ -73,8 +74,8 @@ export default function Permission({ documentId }) {
                         onChange={hdlSelectPermission}
                         className="select select-info max-w-xs">
                         <option disabled selected>Select permission</option>
-                        <option>EDITOR</option>
-                        <option>VIEWER</option>
+                        <option>WRITE</option>
+                        <option>READ</option>
                     </select>  
                 </div>
 
@@ -108,10 +109,10 @@ export default function Permission({ documentId }) {
                         <div 
                         key={index}
                         className='flex gap-5'>
-                            <p>{el.permission} </p>
                             <p>{el.user.username} </p>
                             <p>({el.user.email}) </p>
-                            <p onClick={() => hdlDeletePermission(el.id)}>remove</p>
+                            <p className={`font-bold ${el.permission == "ADMIN" ? 'text-blue-400' : el.permission == "WRITE" ? 'text-yellow-500' : 'text-green-800'}`}>{el.permission} </p>
+                            <button onClick={() => hdlDeletePermission(el.id)}> <UserRoundX size={20} color='red'/></button>
                         </div>
                     ))}
 

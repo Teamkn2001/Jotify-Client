@@ -35,8 +35,8 @@ const QuillPage = ({
   
 
   useEffect(() => {
-    console.log('📄 Quillpage Component run at ', pageNumber)
-    console.log('🌈🌈🌈🌈', quill)
+    // console.log('📄 Quillpage Component run at ', pageNumber)
+    // console.log('🌈🌈🌈🌈', quill)
     if (!quill) return; 
 
     // Register quill instance
@@ -150,11 +150,11 @@ const QuillPage = ({
         onActivePage();
       }, 100);
     }
-
+ 
     // Monitor Page Active state
     const handleSelection = (range, oldRange, source) => {
       if (source !== 'user') return;
-      console.log("%c range ====", 'background-color: pink', range)
+      // console.log("%c range ====", 'background-color: pink', range)
       if (range) {
         onActivePage();
       }
@@ -169,6 +169,8 @@ const QuillPage = ({
       console.log('current quill height =', contentHeight)
       const contentLength = quill.getText().length;
       const content = quill.root.innerHTML;
+
+      handleContentChange(contentHeight, content);
 
       if (contentHeight > PAGE_HEIGHT || contentLength > MAX_CONTENT_LENGTH) {
         const selection = quill.getSelection();
@@ -186,15 +188,25 @@ const QuillPage = ({
         quill.setContents(contents);
         handlePageFull(pageNumber, quill.root.innerHTML, remainingContent);
       }
-      handleContentChange(contentHeight, content);
     };
+
+     // Add this new handler for format changes (editor-change == anything change will listen)
+  const handleFormatChange = (eventName, ...args) => {
+    if (eventName === 'text-change' || eventName === 'selection-change') {
+      const content = quill.root.innerHTML;
+      const contentHeight = quillRef.current?.clientHeight;
+      handleContentChange(contentHeight, content);
+    }
+  };
 
     quill.on('selection-change', handleSelection);
     quill.on('text-change', handleTextChange);
+    quill.on('editor-change', handleFormatChange);  
 
     return () => {
       quill.off('selection-change', handleSelection);
       quill.off('text-change', handleTextChange);
+      quill.off('editor-change', handleFormatChange);  
     };
   }, [quill]);
 

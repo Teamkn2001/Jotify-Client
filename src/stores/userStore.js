@@ -30,9 +30,9 @@ const useUserStore = create(
           headers: { Authorization: `Bearer ${token}` },
         });
         set({ documents: rs.data.allDocuments });
-        // console.log(rs.data.allDocuments)
+        console.log(rs.data)
+        return rs.data;
       },
-
       //-----------------user profile part and doc manage----------
       getFilteredDoc: async (userId, searchTitle, token) => {
         // console.log(userId, searchTitle, token)
@@ -43,6 +43,7 @@ const useUserStore = create(
           }
         );
         set({ documents: rs.data.allFilteredDocs });
+        return rs.data;
       },
       editProfile: async (userId, body, token) => {
         console.log("in store data = ", userId, body, token);
